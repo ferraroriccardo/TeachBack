@@ -18,6 +18,12 @@ DEMO_EXPLANATION = (
     "si usa per avere più ammoniaca."
 )
 
+DEMO_FIX = (
+    "Il catalizzatore non sposta l'equilibrio, perché accelera allo stesso modo la reazione diretta e quella "
+    "inversa: si arriva prima all'equilibrio, ma la quantità di NH3 è la stessa. Nell'industria si usa per "
+    "risparmiare tempo, non per avere più ammoniaca."
+)
+
 
 def mode() -> str:
     if "mode" not in st.session_state:
@@ -65,8 +71,37 @@ def fast_forward(target: str) -> None:
 
 
 def reset() -> None:
-    for k in ("tb_session", "last_reply", "challenge", "last_step", "graph_answer", "explanation"):
+    for k in ("tb_session", "last_reply", "challenge", "last_step", "graph_answer", "explanation", "toasts"):
         st.session_state.pop(k, None)
+
+
+def jump(target: str) -> None:
+    """Nuova sessione portata subito alla fase `target` (per chi presenta)."""
+    reset()
+    session()
+    fast_forward(target)
+
+
+_ICON = {"pronto": "🟢", "quasi": "🟡", "non_ancora": "🔴", "non_visto": "⚪"}
+_LABEL = {"pronto": "pronto", "quasi": "quasi", "non_ancora": "non ancora", "non_visto": "non visto"}
+
+
+def act(label: str, fn, *args, **kwargs):
+    """Come `run`, ma annuncia i concetti che hanno cambiato stato (notifica alla pagina successiva)."""
+    s = session()
+    before = dict(s.concept_status)
+    out = run(label, fn, *args, **kwargs)
+    course = engine().load_course(s.course_id)
+    for cid, st_new in s.concept_status.items():
+        if before.get(cid) != st_new:
+            st.session_state.setdefault("toasts", []).append(
+                (f"{course.concept(cid).name} → {_LABEL[st_new]}", _ICON[st_new]))
+    return out
+
+
+def flush_toasts() -> None:
+    for text, icon in st.session_state.pop("toasts", []):
+        st.toast(text, icon=icon)
 
 
 def set_mode(new: str) -> None:

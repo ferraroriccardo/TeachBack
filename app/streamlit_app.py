@@ -51,7 +51,15 @@ with st.sidebar:
     if st.button("↺ Nuova sessione", width="stretch", key="reset"):
         state.reset()
         st.rerun()
+    with st.expander("🎬 Per chi presenta"):
+        st.caption("Riparte dal copione della demo, già portato a questa fase.")
+        for target, label in [("prova", "Prova d'esame (l'errore)"), ("resoconto", "Resoconto dell'Insegnante"),
+                              ("sfide", "Sfide")]:
+            if st.button(label, key=f"jump_{target}", width="stretch"):
+                state.jump(target)
+                st.switch_page("views/loop.py")
     st.divider()
     st.caption("Studente: demo · Corso: Chimica Generale I")
 
+state.flush_toasts()
 nav.run()

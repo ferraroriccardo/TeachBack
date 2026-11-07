@@ -106,6 +106,7 @@ class Feedback:
     where: str                        # livello 1: DOVE sbagli (con la slide)
     slide_ref: str
     why: str | None = None            # livello 2: PERCHÉ (la UI lo mostra solo su richiesta)
+    claim_ids: list[int] = field(default_factory=list)   # affermazioni dello studente su cui si basa il giudizio
 
 
 @dataclass

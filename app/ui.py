@@ -55,7 +55,26 @@ h1, h2, h3 { color: #14213d; letter-spacing: -0.01em; }
 /* affermazioni */
 .tb-claim { padding:.35rem .55rem; border-radius:8px; margin:.2rem 0; font-size:.92rem; }
 .tb-claim b { color:#2f6fdf; margin-right:.35rem; }
-.tb-claim.hit { background:#fde2e2; border-left:4px solid #d64545; }
+.tb-claim.cited { background:#e3eefc; border-left:4px solid #2f6fdf; }
+.tb-claim.wrong { background:#fde2e2; border-left:4px solid #d64545; }
+.tb-claim .tag { float:right; font-size:.74rem; font-weight:700; border-radius:6px; padding:0 .4rem; margin-left:.4rem; }
+.tb-claim.cited .tag { background:#2f6fdf; color:#fff; }
+.tb-claim.wrong .tag { background:#d64545; color:#fff; }
+/* guida della fase */
+.tb-guide { display:flex; gap:.75rem; align-items:flex-start; background:#f1f6ff; border:1px solid #cfe0fa; border-radius:12px; padding:.65rem .9rem; margin:-.4rem 0 1rem 0; font-size:.95rem; }
+.tb-guide .ico { font-size:1.3rem; line-height:1.2; }
+.tb-guide b { color:#1e4fa8; }
+/* messaggi lunghi richiudibili */
+.tb-bubble details summary { cursor:pointer; list-style:none; }
+.tb-bubble details summary::-webkit-details-marker { display:none; }
+.tb-bubble details summary .more { color:#2f6fdf; font-weight:600; white-space:nowrap; }
+.tb-bubble details[open] summary { display:none; }
+/* esito della prova */
+.tb-verdict { border-radius:14px; padding:.8rem 1rem; margin:.6rem 0 .2rem 0; display:flex; gap:.7rem; align-items:flex-start; }
+.tb-verdict .ico { font-size:1.6rem; line-height:1.1; }
+.tb-dots { letter-spacing:.25rem; font-size:1.05rem; color:#d9a400; }
+.tb-tip { color:#4b5563; font-size:.9rem; margin:.4rem 0 .3rem 2.6rem; padding-left:1.1rem; }
+.tb-tip li { margin:.1rem 0; }
 /* resoconto (mockup Insegnante AI) */
 .tb-sec { font-weight:800; font-size:.86rem; letter-spacing:.03em; color:#1f2937; margin:1rem 0 .4rem 0; text-transform:uppercase; }
 .tb-box { border-radius:14px; padding:.85rem 1.1rem; margin-bottom:.6rem; }
@@ -102,6 +121,20 @@ def stepper(phase: str) -> None:
     st.markdown('<div class="tb-steps">' + "".join(parts) + "</div>", unsafe_allow_html=True)
 
 
+def guide(icon: str, html_text: str) -> None:
+    """Una riga che dice cosa sta succedendo e cosa fare adesso."""
+    st.markdown(f'<div class="tb-guide"><div class="ico">{icon}</div><div>{html_text}</div></div>',
+                unsafe_allow_html=True)
+
+
+def _foldable(t: str, limit: int = 260) -> str:
+    """Testo già escapato: oltre `limit` caratteri si richiude, con "mostra tutto"."""
+    if len(t) <= limit:
+        return t
+    cut = t[:limit].rsplit(" ", 1)[0]
+    return (f'<details><summary>{cut}… <span class="more">mostra tutto</span></summary>{t}</details>')
+
+
 def _cites_to_badges(text: str) -> str:
     return re.sub(r"\(aff\. ([\d, ]+)\)", lambda m: "".join(f'<span class="tb-cite">{n.strip()}</span>'
                                                               for n in m.group(1).split(",")), text)
@@ -119,7 +152,7 @@ def chat(messages: list[tuple[str, str]], recent: int | None = None) -> None:
         if role == "esame":
             out.append(f'<div class="tb-exam"><span>📝 Domanda d\'esame: {t}</span></div>')
         elif role == "studente":
-            out.append(f'<div class="tb-msg me"><div class="tb-bubble">{t}</div><div class="ava">{AVATAR["studente"]}</div></div>')
+            out.append(f'<div class="tb-msg me"><div class="tb-bubble">{_foldable(t)}</div><div class="ava">{AVATAR["studente"]}</div></div>')
         elif role == "sotto_studente":
             out.append(f'<div class="tb-msg sub"><div class="ava">🐣</div><div class="tb-bubble">{_cites_to_badges(t)}</div></div>')
         else:
@@ -130,12 +163,22 @@ def chat(messages: list[tuple[str, str]], recent: int | None = None) -> None:
     st.markdown("".join(out), unsafe_allow_html=True)
 
 
-def claims_panel(claims: list[Claim], reply: SubStudentReply | None) -> None:
+def claims_panel(claims: list[Claim], reply: SubStudentReply | None, wrong: dict[int, str] | None = None) -> None:
+    """Blu = citata nell'ultima risposta del Sotto-studente; rosso = l'Insegnante l'ha trovata in contrasto con una slide."""
     cited = {i for s in (reply.sentences if reply else []) for i in s.claim_ids}
+    wrong = wrong or {}
     if not claims:
-        st.caption("Nessuna affermazione ancora.")
+        st.caption("Ancora vuoto: il Sotto-studente non sa niente finché non glielo spieghi.")
         return
-    rows = [f'<div class="tb-claim {"hit" if c.n in cited else ""}"><b>{c.n}</b>{esc(c.text)}</div>' for c in claims]
+    rows = []
+    for c in claims:
+        if c.n in wrong:
+            cls, tag = "wrong", f'<span class="tag">✗ {esc(wrong[c.n])}</span>'
+        elif c.n in cited:
+            cls, tag = "cited", '<span class="tag">citata</span>'
+        else:
+            cls, tag = "", ""
+        rows.append(f'<div class="tb-claim {cls}">{tag}<b>{c.n}</b>{esc(c.text)}</div>')
     st.markdown("".join(rows), unsafe_allow_html=True)
     if reply and reply.discarded:
         st.caption(f"🛡️ Controllo citazioni: {reply.discarded} frase/i scartate perché senza un'affermazione che le sostenga.")
@@ -143,7 +186,8 @@ def claims_panel(claims: list[Claim], reply: SubStudentReply | None) -> None:
 
 def legend(view: GraphView) -> None:
     counts = {k: sum(1 for n in view.nodes if n.status == k) for k in STATUS_STYLE}
-    spans = "".join(f'<span style="background:{STATUS_STYLE[k][0]};white-space:nowrap">{STATUS_STYLE[k][2]}: {counts[k]}</span>'
+    sym = {"pronto": "✓", "quasi": "~", "non_ancora": "✗", "non_visto": "?"}
+    spans = "".join(f'<span style="background:{STATUS_STYLE[k][0]};white-space:nowrap">{sym[k]} {STATUS_STYLE[k][2]}: {counts[k]}</span>'
                     for k in ("pronto", "quasi", "non_ancora", "non_visto"))
     st.markdown(f'<div class="tb-legend" style="width:fit-content">{spans}</div>', unsafe_allow_html=True)
 
@@ -169,11 +213,14 @@ def graph(view: GraphView) -> None:
            'node [shape=circle, style="filled", fixedsize=true, width=1.3, fontname="Helvetica", fontsize=15, penwidth=2.6];',
            'edge [color="#8a94a6", penwidth=2, arrowsize=0.9];']
     k = 0.62  # comprime le posizioni: nodi più grandi rispetto al disegno, testo leggibile
+    symbol = {"pronto": "✓", "quasi": "~", "non_ancora": "✗", "non_visto": "?"}
     for n in view.nodes:
-        fill, border, _ = STATUS_STYLE[n.status]
-        label = _wrap(n.label.replace('"', "'"), 11)
+        fill, border, name = STATUS_STYLE[n.status]
+        label = _wrap(n.label.replace('"', "'"), 11) + f"\\n{symbol[n.status]}"
+        tip = f"{n.label}: {name}" + (f" · {n.reason}" if n.reason else "")
         pos = f', pos="{n.layout[0] * k:.2f},{n.layout[1] * k:.2f}!"' if pinned else ""
-        dot.append(f'"{n.id}" [label="{label}", fillcolor="{fill}", color="{border}"{pos}];')
+        dot.append(f'"{n.id}" [label="{label}", tooltip="{tip.replace(chr(34), chr(39))}", '
+                   f'fillcolor="{fill}", color="{border}"{pos}];')
     for e in view.edges:
         dot.append(f'"{e.source}" -> "{e.target}";')
     dot.append("}")

@@ -49,7 +49,10 @@ Senza chiave l'app parte da sola in modalità offline.
 2. **Insegna al Sotto-studente**. A destra compaiono le affermazioni numerate: è tutto ciò che il Sotto-studente sa.
 3. **Fagli provare la domanda d'esame**, quella sul catalizzatore. Risponde *"l'NH3 aumenta"* citando l'affermazione sbagliata, che si colora di rosso.
 4. **Chiedi il resoconto all'Insegnante**. Compare il riquadro rosso *Catalizzatore* con la Slide 13, e *Perché?* come secondo livello. Il nodo **Catalizzatore** nel grafo diventa rosso.
-5. **Messaggio settimanale** (sezione Docente): *Catalizzatore* è in cima, con la slide collegata.
+5. **✏️ Rispiega questo concetto**. Il Sotto-studente dimentica l'affermazione sbagliata. Poi **📋 Correzione della demo**, **Insegna**, di nuovo **Fagli provare la domanda d'esame** e **Chiedi il resoconto**: ora risponde *"non cambia"* e il catalizzatore diventa verde.
+6. **Messaggio settimanale** (sezione Docente): *Catalizzatore* è in cima, con la slide collegata.
+
+Ogni cambio di stato di un concetto compare come notifica (es. *🔴 Catalizzatore → non ancora*). Nella barra laterale, **🎬 Per chi presenta** riparte dal copione già portato alla prova d'esame, al resoconto o alle sfide.
 
 Per ripartire da un punto preciso basta aprire l'app con un parametro nell'indirizzo:
 
@@ -74,7 +77,7 @@ Nella barra laterale, **↺ Nuova sessione** azzera tutto.
 | Interfaccia | Streamlit 1.67 | Multipagina, ricalcata sui mockup in `static/` |
 | Grafo | NetworkX + Graphviz (nel browser, via `st.graphviz_chart`) | Prerequisiti, stato dei concetti, percorsi |
 | Memoria | SQLite (`data/teachback.db`, creato da solo) | Stato di ogni concetto per studente e date dei ripassi |
-| Test | pytest + `streamlit.testing` (AppTest) | 54 test offline, più 3 opzionali sul modello vero |
+| Test | pytest + `streamlit.testing` (AppTest) | 57 test offline, più 3 opzionali sul modello vero |
 
 I modelli si cambiano da `.env` (`TEACHBACK_TEACHER_MODEL`, `TEACHBACK_SUBSTUDENT_MODEL`). Niente training: solo modelli pre-addestrati.
 
@@ -107,7 +110,7 @@ Descrizione completa in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). In breve:
 ## Test e valutazione
 
 ```bash
-.venv\Scripts\python -m pytest                 # 54 test, nessuna chiamata di rete
+.venv\Scripts\python -m pytest                 # 57 test, nessuna chiamata di rete
 .venv\Scripts\python -m pytest -m live         # 3 test sul modello vero (serve la chiave, costa centesimi)
 .venv\Scripts\python eval\run_eval.py --mode offline|live      # accordo con il giudizio umano + fughe di conoscenza
 .venv\Scripts\python eval\export_examples.py --mode offline|live   # rigenera docs/EXAMPLES.md

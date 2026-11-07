@@ -61,6 +61,7 @@ class Engine:
 
     def submit_explanation(self, s: Session, text: str) -> list[Claim]:
         text = text.strip()
+        s.hidden.pop("focus", None)
         s.chat.append(("studente", text))
         s.phase = "domande"
         if guardrails.asks_substudent_for_answer(text) and len(text.split()) < 25:
@@ -155,14 +156,17 @@ class Engine:
 
         feedback: list[Feedback] = []
         if not retry:  # sotto soglia si dice solo cosa manca, senza aiuti
+            valid = {c.n for c in s.claims}
             for cid in wrong:
                 v = verdicts[cid]
                 feedback.append(Feedback(cid, v["where"] or "Qui qualcosa non torna con il materiale.",
-                                         course.concept(cid).slide_ref, v.get("why") or None))
+                                         course.concept(cid).slide_ref, v.get("why") or None,
+                                         [n for n in v.get("evidence_claims", []) if n in valid]))
             for cid in named:
                 v = verdicts[cid]
                 feedback.append(Feedback(cid, v["where"] or f"Hai nominato {course.concept(cid).name} senza un perché o un esempio.",
-                                         course.concept(cid).slide_ref, None))
+                                         course.concept(cid).slide_ref, None,
+                                         [n for n in v.get("evidence_claims", []) if n in valid]))
         discrepancies = [Discrepancy(d["source"], guardrails.discrepancy_note(d["source"], d["detail"]))
                          for d in raw.get("discrepancies", [])]
         for d in discrepancies:
@@ -175,6 +179,25 @@ class Engine:
                        "Riprova: mancano ancora " + ", ".join(course.concept(c).name for c in missing) + "."))
         logger.log(s, "teacher_report", explained=explained, named=named, wrong=wrong, retry=retry)
         return rep
+
+    def revise_concept(self, s: Session, concept_id: str) -> list[Claim]:
+        """Dal resoconto: lo studente rispiega un concetto. Le affermazioni giudicate sbagliate
+        vengono ritirate (il Sotto-studente le "dimentica") e si torna a "Io spiego"."""
+        course = self.load_course(s.course_id)
+        rep = s.hidden.get("report")
+        ids = set()
+        if rep is not None:
+            ids = {n for f in rep.feedback if f.concept_id == concept_id for n in f.claim_ids}
+        removed = [c for c in s.claims if c.n in ids]
+        s.claims = [c for c in s.claims if c.n not in ids]
+        s.hidden["focus"] = concept_id
+        s.phase = "spiego"
+        name = course.concept(concept_id).name
+        s.chat.append(("insegnante", f"Rispiega «{name}» al Sotto-studente con parole tue"
+                                     + (f": ho tolto dalla sua memoria l'affermazione {', '.join(str(c.n) for c in removed)}."
+                                        if removed else ".")))
+        logger.log(s, "revise_concept", concept=concept_id, retracted=[c.n for c in removed])
+        return removed
 
     # --- 5 · Sfide dell'Insegnante (con la regola "spiegalo tu") -------------------------------------
 

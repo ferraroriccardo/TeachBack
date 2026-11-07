@@ -156,8 +156,10 @@ class OfflineBackend:
             else:
                 out.append({"id": concept.id, "verdict": "assente", "evidence_claims": [], "where": "", "why": ""})
         n_ok = sum(1 for c in out if c["verdict"] == "spiegato")
+        n_wrong = sum(1 for c in out if c["verdict"] == "errato")
         summary = (f"Hai spiegato bene {n_ok} concetti con un perché o un esempio. "
-                   "Guarda i punti segnalati: il Sotto-studente ha applicato alla lettera quello che gli hai detto.")
+                   + ("Guarda i punti segnalati: il Sotto-studente ha applicato alla lettera quello che gli hai detto."
+                      if n_wrong else "Il Sotto-studente ha usato bene quello che gli hai insegnato."))
         return {"concepts": out, "discrepancies": [], "summary": summary}
 
     def make_challenge(self, course: Course, slides: str, concept: Concept, kind: str,

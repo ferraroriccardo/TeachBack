@@ -59,3 +59,27 @@ def test_full_demo_through_the_ui(at):
     _click(at, "ex_2")
     q, ans = at.session_state["graph_answer"]
     assert not ans.found
+
+
+def test_fix_the_mistake_from_the_report(at):
+    """Errore → resoconto → «Rispiega questo concetto» → correzione → il catalizzatore diventa verde."""
+    at.switch_page("views/loop.py").run()
+    _click(at, "demo_text")
+    _click(at, "teach")
+    _click(at, "try_exam")
+    _click(at, "ask_report")
+    s = at.session_state["tb_session"]
+    assert s.concept_status["catalizzatore"] == "non_ancora"
+    _click(at, "revise_catalizzatore")
+    assert s.phase == "spiego" and not any("catalizzatore sposta" in c.text for c in s.claims)
+    _click(at, "demo_fix")
+    _click(at, "teach")
+    _click(at, "try_exam")
+    assert "non cambia" in s.chat[-1][1]
+    _click(at, "ask_report")
+    assert s.concept_status["catalizzatore"] == "pronto"
+
+
+def test_presenter_can_jump_to_a_phase(at):
+    _click(at, "jump_resoconto")
+    assert at.session_state["tb_session"].phase == "resoconto"

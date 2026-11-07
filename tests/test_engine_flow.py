@@ -52,6 +52,28 @@ def test_demo_script_catalyst(offline_engine, demo_text):
     assert msg.top_errors[0][0] == "Catalizzatore"
 
 
+def test_revising_a_wrong_concept_closes_the_loop(offline_engine, demo_text):
+    """Dal resoconto: rispiego il catalizzatore, l'affermazione sbagliata viene ritirata, il nodo diventa verde."""
+    e = offline_engine
+    s = e.start_session("chimica-equilibrio", "le_chatelier")
+    e.submit_explanation(s, demo_text)
+    e.substudent_try_exam(s)
+    rep = e.teacher_report(s)
+    wrong = next(f for f in rep.feedback if f.concept_id == "catalizzatore")
+    assert wrong.claim_ids, "il resoconto deve dire quale affermazione è sbagliata"
+
+    removed = e.revise_concept(s, "catalizzatore")
+    assert [c.n for c in removed] == wrong.claim_ids
+    assert s.phase == "spiego" and all(c.n not in wrong.claim_ids for c in s.claims)
+
+    e.submit_explanation(s, "Il catalizzatore non sposta l'equilibrio, perché accelera allo stesso modo "
+                            "la reazione diretta e quella inversa: si arriva solo prima all'equilibrio.")
+    r = e.substudent_try_exam(s)
+    assert r.kind == "risposta" and "non cambia" in r.text
+    e.teacher_report(s)
+    assert s.concept_status["catalizzatore"] == "pronto"
+
+
 def test_without_catalyst_the_substudent_blocks(offline_engine):
     e = offline_engine
     s = e.start_session("chimica-equilibrio", "le_chatelier")

@@ -40,7 +40,10 @@ for col, (icon, bg, badge, badge_bg, title, sub, pct, bar, active) in zip(cols, 
             f'<div class="tb-bar"><div style="width:{int(pct * 100)}%;background:{bar}"></div></div></div></div>',
             unsafe_allow_html=True)
         if active:
-            if st.button("Apri il loop →", key="open_loop", type="primary", width="stretch"):
+            phase_name = {"spiego": "Inizia il loop →", "domande": "Riprendi: domande →", "prova": "Riprendi: prova d'esame →",
+                          "resoconto": "Riprendi: resoconto →", "sfide": "Riprendi: sfide →"}
+            label = phase_name.get(s.phase, "Apri il loop →") if s.chat else "Inizia il loop →"
+            if st.button(label, key="open_loop", type="primary", width="stretch"):
                 st.switch_page("views/loop.py")
         else:
             st.button("Solo esempio", key=f"ex_{title}", disabled=True, width="stretch")
