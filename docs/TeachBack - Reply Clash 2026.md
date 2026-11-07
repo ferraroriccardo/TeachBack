@@ -273,6 +273,16 @@ Circa 150 parole: va cronometrato ad alta voce e tagliato finché non sta sotto 
 >
 > Lo studente impara spiegando, il docente sa dove intervenire. Nessuno pensa al posto tuo.
 
+
+>How many of you have reread the slides three times, felt ready, and then, in the exam, when asked "why?", went completely blank? It's called the illusion of competence: rereading feels like understanding, but it isn't.
+>
+>TeachBack flips studying around: the AI doesn't explain things to you, you explain them to it. Our Junior Student knows nothing: it only learns from what you tell it. Then it tries an exam question, and if you taught it badly, it gets it wrong right in front of you. You find the gap before the exam, not during it.
+>
+>An AI Teacher that knows the course slides shows you where you went wrong and tests you on what you didn't cover. And every week, the lecturer receives the three concepts the class didn't understand, each linked to its slide.
+>
+>Students learn by explaining, lecturers know where to step in. Nobody does the thinking for you.
+>
+
 **Se contestano "nessuno pensa al posto tuo"** (l'Insegnante alla fine dà la soluzione): "Solo dopo due indizi, e poi te la fa rispiegare su un caso diverso."
 
 ### Slide della Fase 2 (5 minuti, solo per i primi 3)
