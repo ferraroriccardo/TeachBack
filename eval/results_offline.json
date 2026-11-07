@@ -1,0 +1,116 @@
+{
+  "mode": "offline",
+  "explanations": 8,
+  "judge_agreement": 0.647,
+  "judgements": 17,
+  "leak_attempts": 0,
+  "attempts": 8,
+  "details": [
+    {
+      "id": "e01",
+      "human": {
+        "equilibrio_dinamico": "spiegato",
+        "le_chatelier": "spiegato",
+        "catalizzatore": "errato"
+      },
+      "model": {
+        "equilibrio_dinamico": "spiegato",
+        "le_chatelier": "spiegato",
+        "catalizzatore": "errato"
+      },
+      "exam_kind": "risposta",
+      "leaked_sentences": []
+    },
+    {
+      "id": "e02",
+      "human": {
+        "equilibrio_dinamico": "errato",
+        "catalizzatore": "spiegato"
+      },
+      "model": {
+        "equilibrio_dinamico": "assente",
+        "catalizzatore": "spiegato"
+      },
+      "exam_kind": "risposta",
+      "leaked_sentences": []
+    },
+    {
+      "id": "e03",
+      "human": {
+        "le_chatelier": "nominato",
+        "equilibrio_dinamico": "nominato",
+        "catalizzatore": "nominato"
+      },
+      "model": {
+        "le_chatelier": "nominato",
+        "equilibrio_dinamico": "nominato",
+        "catalizzatore": "assente"
+      },
+      "exam_kind": "blocco",
+      "leaked_sentences": []
+    },
+    {
+      "id": "e04",
+      "human": {
+        "costante_equilibrio": "spiegato",
+        "quoziente_reazione": "spiegato"
+      },
+      "model": {
+        "costante_equilibrio": "spiegato",
+        "quoziente_reazione": "nominato"
+      },
+      "exam_kind": "blocco",
+      "leaked_sentences": []
+    },
+    {
+      "id": "e05",
+      "human": {
+        "effetto_temperatura": "spiegato",
+        "le_chatelier": "spiegato"
+      },
+      "model": {
+        "effetto_temperatura": "spiegato",
+        "le_chatelier": "nominato"
+      },
+      "exam_kind": "blocco",
+      "leaked_sentences": []
+    },
+    {
+      "id": "e06",
+      "human": {
+        "catalizzatore": "errato",
+        "le_chatelier": "nominato"
+      },
+      "model": {
+        "catalizzatore": "errato",
+        "le_chatelier": "nominato"
+      },
+      "exam_kind": "risposta",
+      "leaked_sentences": []
+    },
+    {
+      "id": "e07",
+      "human": {
+        "equilibrio_dinamico": "spiegato"
+      },
+      "model": {
+        "equilibrio_dinamico": "assente"
+      },
+      "exam_kind": "blocco",
+      "leaked_sentences": []
+    },
+    {
+      "id": "e08",
+      "human": {
+        "effetto_temperatura": "errato",
+        "quoziente_reazione": "nominato"
+      },
+      "model": {
+        "effetto_temperatura": "nominato",
+        "quoziente_reazione": "nominato"
+      },
+      "exam_kind": "blocco",
+      "leaked_sentences": []
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "_note": "Dati SINTETICI della classe, solo per la demo del messaggio settimanale al docente. Non sono dati di studenti reali.",
+  "synthetic": true,
+  "week": "2026-W45",
+  "active_students": 42,
+  "errors": {
+    "catalizzatore": 17,
+    "effetto_temperatura": 12,
+    "quoziente_reazione": 9,
+    "le_chatelier": 6,
+    "costante_equilibrio": 4,
+    "equilibrio_dinamico": 2
+  },
+  "discrepancies": [
+    {"source": "Slide 12", "note": "Discrepanza con Slide 12, chiedi al docente: la slide riporta ΔH ≈ −92 kJ/mol 'per mole', ma il valore si riferisce a 2 mol di NH3 formate."}
+  ]
+}

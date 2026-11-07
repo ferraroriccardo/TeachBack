@@ -1,0 +1,151 @@
+{
+  "id": "chimica-equilibrio",
+  "title": "Chimica Generale I - Equilibrio chimico",
+  "official": true,
+  "concepts": [
+    {
+      "id": "equilibrio_dinamico",
+      "name": "Equilibrio dinamico",
+      "prerequisites": [],
+      "slide_ref": "Slide 3 - Reazioni reversibili ed equilibrio dinamico",
+      "aliases": [
+        "equilibrio dinamico",
+        "reazione reversibile",
+        "reazioni reversibili"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 3",
+        "extracted_by": "AI (proposta)",
+        "validated_by": "docente",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        0,
+        1.5
+      ]
+    },
+    {
+      "id": "costante_equilibrio",
+      "name": "Costante di equilibrio (Kc)",
+      "prerequisites": [
+        "equilibrio_dinamico"
+      ],
+      "slide_ref": "Slide 6 - Legge di azione di massa e Kc",
+      "aliases": [
+        "costante di equilibrio",
+        "kc",
+        "azione di massa",
+        "costante"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 6",
+        "extracted_by": "AI (proposta)",
+        "validated_by": "docente",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        2.3,
+        2.7
+      ]
+    },
+    {
+      "id": "quoziente_reazione",
+      "name": "Quoziente di reazione (Q)",
+      "prerequisites": [
+        "costante_equilibrio"
+      ],
+      "slide_ref": "Slide 8 - Quoziente di reazione Q",
+      "aliases": [
+        "quoziente di reazione",
+        "quoziente"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 8",
+        "extracted_by": "AI (proposta)",
+        "validated_by": "docente",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        4.6,
+        2.7
+      ]
+    },
+    {
+      "id": "le_chatelier",
+      "name": "Principio di Le Châtelier",
+      "prerequisites": [
+        "quoziente_reazione"
+      ],
+      "slide_ref": "Slide 10 - Principio di Le Châtelier",
+      "aliases": [
+        "le chatelier",
+        "le châtelier",
+        "lechatelier",
+        "chatelier",
+        "châtelier"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 10-11",
+        "extracted_by": "AI (proposta)",
+        "validated_by": "docente",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        4.6,
+        0.3
+      ]
+    },
+    {
+      "id": "effetto_temperatura",
+      "name": "Effetto della temperatura",
+      "prerequisites": [
+        "le_chatelier"
+      ],
+      "slide_ref": "Slide 12 - Temperatura e costante di equilibrio",
+      "aliases": [
+        "temperatura",
+        "esotermica",
+        "endotermica"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 12",
+        "extracted_by": "AI (proposta)",
+        "validated_by": "docente",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        6.9,
+        1.5
+      ]
+    },
+    {
+      "id": "catalizzatore",
+      "name": "Catalizzatore",
+      "prerequisites": [
+        "equilibrio_dinamico",
+        "le_chatelier"
+      ],
+      "slide_ref": "Slide 13 - Catalizzatori ed equilibrio",
+      "aliases": [
+        "catalizzatore",
+        "catalizzatori",
+        "catalisi"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 13",
+        "extracted_by": "AI (proposta)",
+        "validated_by": "docente",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        2.3,
+        0.3
+      ]
+    }
+  ],
+  "exam_questions": [
+    "Aggiungo un catalizzatore alla reazione N2 + 3H2 ⇌ 2NH3 già all'equilibrio. Cosa succede alla quantità di NH3 all'equilibrio? Perché?",
+    "Nella reazione N2 + 3H2 ⇌ 2NH3 all'equilibrio aggiungo altro N2. Da che parte si sposta l'equilibrio e perché?",
+    "Perché, comprimendo il recipiente della reazione N2 + 3H2 ⇌ 2NH3, l'equilibrio si sposta verso NH3?"
+  ]
+}
