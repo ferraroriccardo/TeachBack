@@ -1,5 +1,4 @@
-# Teaching for Learning — Hackathon Reply 2026
-
+TeachBack - Reply Clash 2026
 Nov 7, 2026 · @Rosario
 
 ## La challenge
