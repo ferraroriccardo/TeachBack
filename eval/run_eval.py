@@ -4,7 +4,7 @@
     python eval/run_eval.py --mode live    # Claude: costa qualche decina di chiamate
 
 Metriche (obiettivi da docs/TeachBack - Reply Clash 2026.md):
-- accordo tra il nostro giudizio (explanations.jsonl) e quello dell'Insegnante, per concetto: obiettivo >= 80%
+- agreement between il nostro giudizio (explanations.jsonl) e quello dell'Insegnante, per concetto: obiettivo >= 80%
 - prove in cui il Sotto-studente usa conoscenze non date: obiettivo 0
   (frase con citazione valida ma >50% di parole che non vengono né dalle affermazioni né dalla domanda)
 """
@@ -40,7 +40,7 @@ def main() -> None:
     leaks = attempts = 0
     details = []
     for row in rows:
-        s = engine.start_session("chimica-equilibrio", "le_chatelier", student_id=f"eval-{row['id']}")
+        s = engine.start_session("chemistry-equilibrium", "le_chatelier", student_id=f"eval-{row['id']}")
         engine.submit_explanation(s, row["text"])
         exam = engine.substudent_try_exam(s)
         attempts += 1
@@ -71,10 +71,10 @@ def main() -> None:
     }
     out = ROOT / "eval" / f"results_{args.mode}.json"
     out.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"Motore: {args.mode}")
-    print(f"Accordo con il giudizio umano: {agree}/{total} = {result['judge_agreement']:.0%} (obiettivo >= 80%)")
-    print(f"Prove con fughe di conoscenza: {leaks}/{attempts} (obiettivo 0)")
-    print(f"Dettagli: {out.relative_to(ROOT)}")
+    print(f"Engine: {args.mode}")
+    print(f"Agreement with human judgement: {agree}/{total} = {result['judge_agreement']:.0%} (target >= 80%)")
+    print(f"Attempts with knowledge leaks: {leaks}/{attempts} (target 0)")
+    print(f"Details: {out.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

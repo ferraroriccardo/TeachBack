@@ -12,5 +12,5 @@ BACKEND_METHODS = ("extract_claims", "ask", "try_exam", "report", "make_challeng
 
 def claims_block(claims) -> str:
     if not claims:
-        return "AFFERMAZIONI DELLO STUDENTE: (nessuna)"
-    return "AFFERMAZIONI DELLO STUDENTE:\n" + "\n".join(f"{c.n}. {c.text}" for c in claims)
+        return "STUDENT'S CLAIMS: (none)"
+    return "STUDENT'S CLAIMS:\n" + "\n".join(f"{c.n}. {c.text}" for c in claims)

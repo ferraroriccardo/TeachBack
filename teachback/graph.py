@@ -13,7 +13,7 @@ import re
 
 import networkx as nx
 
-from teachback.contracts import Course, GraphAnswer, GraphEdge, GraphNode, GraphView
+from teachback.contracts import STATUS_LABEL, Course, GraphAnswer, GraphEdge, GraphNode, GraphView
 from teachback.guardrails import _norm
 
 RED = "non_ancora"
@@ -49,8 +49,8 @@ def view(course: Course, status: dict) -> GraphView:
         reason = None
         path = _red_ancestor(g, c.id, status) if st != "pronto" else None
         if path:
-            reason = (f"{c.name} può non tornarti perché {g.nodes[path[0]]['name']} "
-                      f"è ancora rosso (prerequisito).")
+            reason = (f"{c.name} may not click yet because {g.nodes[path[0]]['name']} "
+                      f"is still red (prerequisite).")
         nodes.append(GraphNode(c.id, c.name, st, reason, c.layout))
     edges = [GraphEdge(u, v) for u, v in g.edges]
     return GraphView(nodes, edges)
@@ -59,15 +59,15 @@ def view(course: Course, status: dict) -> GraphView:
 def _source(g: nx.DiGraph, node: str) -> str:
     d = g.nodes[node]
     p = d.get("provenance") or {}
-    who = ", ".join(x for x in (p.get("extracted_by") and f"estratto da {p['extracted_by']}",
-                                p.get("validated_by") and f"convalidato da {p['validated_by']}",
+    who = ", ".join(x for x in (p.get("extracted_by") and f"extracted by {p['extracted_by']}",
+                                p.get("validated_by") and f"validated by {p['validated_by']}",
                                 p.get("date")) if x)
     return f"{d['name']}: {d['slide']}" + (f" ({who})" if who else "")
 
 
 def _arrow(g: nx.DiGraph, path: list[str]) -> list[str]:
-    """[a, b, c] lungo gli archi prerequisito→concetto, letto come 'c richiede b richiede a'."""
-    return [f"{g.nodes[v]['name']} —richiede→ {g.nodes[u]['name']}" for u, v in zip(path, path[1:])]
+    """[a, b, c] along prerequisite→concept edges, read as 'c requires b requires a'."""
+    return [f"{g.nodes[v]['name']} —requires→ {g.nodes[u]['name']}" for u, v in zip(path, path[1:])]
 
 
 def _match_concepts(course: Course, question: str) -> list[str]:
@@ -82,8 +82,8 @@ def _match_concepts(course: Course, question: str) -> list[str]:
     return [cid for _, _, cid in sorted(hits)]
 
 
-_NOT_FOUND = ("Il grafo non contiene questa informazione. So solo quali concetti richiedono quali altri, "
-              "da quale slide vengono e il tuo stato su ciascuno. Chiedilo all'Insegnante o al docente.")
+_NOT_FOUND = ("The graph does not contain this information. I only know which concepts require which, "
+              "which slide they come from and your status on each. Ask the Teacher or your lecturer.")
 
 
 def ask(course: Course, status: dict, question: str) -> GraphAnswer:
@@ -91,50 +91,50 @@ def ask(course: Course, status: dict, question: str) -> GraphAnswer:
     q = _norm(question)
     found = _match_concepts(course, question)
     if not found:
-        return GraphAnswer(False, "Nel grafo non c'è nessun concetto che corrisponda alla domanda. " + _NOT_FOUND)
+        return GraphAnswer(False, "No concept in the graph matches the question. " + _NOT_FOUND)
     cid = found[0]
     name = g.nodes[cid]["name"]
 
-    # 1) "Perché X non mi torna / è rosso?"
-    if re.search(r"perche.*(non|ross|giall|torna|sbagli|blocc)|non mi torna|come sono messo|stato", q):
+    # 1) "Why don't I get X / why is it red?"
+    if re.search(r"why.*(not|n't|red|yellow|wrong|stuck|click)|how am i doing|status|perche.*(non|ross|giall|torna|sbagli|blocc)|non mi torna", q):
         st = status.get(cid, "non_visto")
         path = _red_ancestor(g, cid, status)
         if path and st == "pronto":
-            ans = (f"{name} per ora è «pronto», ma richiede {g.nodes[path[0]]['name']}, che per te è "
-                   "ancora rosso: potresti saperlo applicare senza sapere perché funziona. Ripassa prima quello.")
+            ans = (f"{name} is “ready” for now, but it requires {g.nodes[path[0]]['name']}, which is "
+                   "still red for you: you may be able to apply it without knowing why it works. Review that first.")
             return GraphAnswer(True, ans, _arrow(g, path), [_source(g, n) for n in path])
         if path:
-            ans = (f"{name} è «{st.replace('_', ' ')}». Il motivo più probabile: richiede "
-                   f"{g.nodes[path[0]]['name']}, che per te è ancora rosso. Riparti da lì.")
+            ans = (f"{name} is “{STATUS_LABEL[st]}”. The most likely reason: it requires "
+                   f"{g.nodes[path[0]]['name']}, which is still red for you. Start again from there.")
             return GraphAnswer(True, ans, _arrow(g, path), [_source(g, n) for n in path])
         if st == RED:
-            ans = (f"{name} è rosso, ma i suoi prerequisiti non sono rossi: la lacuna è proprio su "
-                   f"{name}. Rileggi {g.nodes[cid]['slide']} e rispiegalo al Sotto-studente.")
-            return GraphAnswer(True, ans, [f"{name} (stato: non ancora)"], [_source(g, cid)])
-        ans = f"{name} è «{st.replace('_', ' ')}» e nessun suo prerequisito è rosso."
-        return GraphAnswer(True, ans, [f"{name} (stato: {st.replace('_', ' ')})"], [_source(g, cid)])
+            ans = (f"{name} is red, but its prerequisites are not: the gap is in "
+                   f"{name} itself. Reread {g.nodes[cid]['slide']} and re-explain it to the Sub-student.")
+            return GraphAnswer(True, ans, [f"{name} (status: not yet)"], [_source(g, cid)])
+        ans = f"{name} is “{STATUS_LABEL[st]}” and none of its prerequisites is red."
+        return GraphAnswer(True, ans, [f"{name} (status: {STATUS_LABEL[st]})"], [_source(g, cid)])
 
-    # 2) "Cosa devo sapere prima di X?"
-    if re.search(r"prima|prerequisit|serve sapere|devo sapere|richied|basi|propedeut", q):
+    # 2) "What do I need to know before X?"
+    if re.search(r"before|prerequisit|need to know|require|basics|prima|serve sapere|devo sapere|richied", q):
         anc = [n for n in nx.topological_sort(g) if n in nx.ancestors(g, cid)]
         if not anc:
-            return GraphAnswer(True, f"{name} non ha prerequisiti nel grafo: è un punto di partenza.",
+            return GraphAnswer(True, f"{name} has no prerequisites in the graph: it is a starting point.",
                                [], [_source(g, cid)])
-        order = ", ".join(f"{g.nodes[n]['name']} ({status.get(n, 'non_visto').replace('_', ' ')})" for n in anc)
+        order = ", ".join(f"{g.nodes[n]['name']} ({STATUS_LABEL[status.get(n, 'non_visto')]})" for n in anc)
         path = []
         for n in anc:
             path += _arrow(g, nx.shortest_path(g, n, cid))
-        return GraphAnswer(True, f"Prima di {name} servono, in quest'ordine: {order}.",
+        return GraphAnswer(True, f"Before {name} you need, in this order: {order}.",
                            list(dict.fromkeys(path)), [_source(g, n) for n in anc + [cid]])
 
-    # 3) "Cosa sblocca X?"
-    if re.search(r"sblocca|dopo|a cosa serve|serve per|dipende da lui|chi lo usa", q):
+    # 3) "What does X unlock?"
+    if re.search(r"unlock|after|what is .* for|used for|depend on|needs it|sblocca|a cosa serve|serve per", q):
         desc = [n for n in nx.topological_sort(g) if n in nx.descendants(g, cid)]
         if not desc:
-            return GraphAnswer(True, f"Nel grafo nessun concetto richiede {name}.", [], [_source(g, cid)])
+            return GraphAnswer(True, f"No concept in the graph requires {name}.", [], [_source(g, cid)])
         path = [a for n in desc for a in _arrow(g, nx.shortest_path(g, cid, n))]
-        return GraphAnswer(True, f"{name} serve per: " + ", ".join(g.nodes[n]["name"] for n in desc) + ".",
+        return GraphAnswer(True, f"{name} is needed for: " + ", ".join(g.nodes[n]["name"] for n in desc) + ".",
                            list(dict.fromkeys(path)), [_source(g, n) for n in [cid] + desc])
 
-    return GraphAnswer(False, f"Ho trovato {name} nel grafo, ma la domanda non riguarda prerequisiti, "
-                              f"dipendenze o il tuo stato. " + _NOT_FOUND, [], [_source(g, cid)])
+    return GraphAnswer(False, f"I found {name} in the graph, but the question is not about prerequisites, "
+                              f"dependencies or your status. " + _NOT_FOUND, [], [_source(g, cid)])

@@ -6,4 +6,4 @@ venv/
 .pytest_cache/
 logs/
 data/teachback.db
-.streamlit/secrets.toml
+web/node_modules/
