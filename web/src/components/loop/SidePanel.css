@@ -1,0 +1,20 @@
+/* Right column of the loop: panels and the Sub-student's claims. */
+.side { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.panel { min-width: 0; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r-lg); padding: 18px 20px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.panel h2 { font-size: 1.12rem; }
+.legend { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 0; margin: 0; font-size: .8rem; color: var(--ink-2); }
+.legend li { display: inline-flex; align-items: center; gap: 5px; }
+.legend .dot { width: 8px; height: 8px; }
+.count-pill { background: var(--chick-soft); font-weight: 700; padding: 2px 10px; border-radius: 99px; font-size: .88rem; }
+
+.claims { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; max-height: 340px; overflow-y: auto; }
+.claims li { display: grid; grid-template-columns: 26px 1fr; gap: 4px 10px; padding: 8px 10px; border-radius: var(--r-sm); font-size: .93rem; line-height: 1.45; transition: background .3s; }
+.claim-n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--idle-soft); font-weight: 700; font-size: .78rem; }
+.claims li.cited { background: var(--pen-soft); }
+.claims li.cited .claim-n { background: var(--pen); color: #fff; }
+.claims li.wrong { background: var(--red-soft); }
+.claims li.wrong .claim-n { background: var(--red); color: #fff; }
+.claims em { grid-column: 2; font-style: normal; font-size: .8rem; font-weight: 600; color: var(--red); }
+.empty { color: var(--ink-3); font-size: .93rem; }
+.fineprint { margin-top: 10px; font-size: .82rem; color: var(--ink-3); }

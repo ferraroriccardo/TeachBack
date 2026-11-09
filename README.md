@@ -32,7 +32,7 @@ Run it (from the repository root):
 .venv/bin/python -m server          # macOS / Linux
 ```
 
-Then open <http://localhost:8000>.
+Then open <http://localhost:8000>. The pitch deck is at <http://localhost:8000/presentation/>.
 
 **Two engines, same app.**
 - **Live · Claude**: both agents run on Claude via the API. Needs `ANTHROPIC_API_KEY` in `.env`. With a key, the badge in the top right switches between engines.
@@ -82,7 +82,7 @@ Every status change shows up as a notification in the bottom right. **New sessio
 | Interface | React 19 + TypeScript + Vite (`web/`) | Dashboard and loop; fonts bundled, works offline too |
 | Graph | NetworkX (backend) + SVG (frontend) | Prerequisites, concept status, paths |
 | Memory | SQLite (`data/teachback.db`, created automatically) | Status of each concept per student, and review dates |
-| Tests | pytest + FastAPI TestClient | 53 offline tests, plus 3 optional ones against the real model |
+| Tests | pytest + FastAPI TestClient | 54 offline tests, plus 3 optional ones against the real model |
 
 Models can be changed in `.env` (`TEACHBACK_TEACHER_MODEL`, `TEACHBACK_SUBSTUDENT_MODEL`). No training: pre-trained models only.
 
@@ -115,7 +115,7 @@ Full description in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (in Italian). I
 ## Tests and evaluation
 
 ```bash
-.venv\Scripts\python -m pytest                 # 53 tests, no network calls
+.venv\Scripts\python -m pytest                 # 54 tests, no network calls
 .venv\Scripts\python -m pytest -m live         # 3 tests on the real model (needs the key, costs cents)
 .venv\Scripts\python eval\run_eval.py --mode offline|live      # agreement with human judgement + knowledge leaks
 .venv\Scripts\python eval\export_examples.py --mode offline|live   # regenerates docs/EXAMPLES.md
@@ -130,7 +130,7 @@ What the tests cover:
 | [tests/test_teacher.py](tests/test_teacher.py) | From judgement to status, one-third threshold, discrepancies, invented IDs ignored, hint ladder, "explain it yourself" rule with the hidden explanation, "skip" |
 | [tests/test_engine_flow.py](tests/test_engine_flow.py) | The demo script end to end, parity between the two engines, logging of every step, resuming from memory |
 | [tests/test_graph_memory_digest.py](tests/test_graph_memory_digest.py) | Acyclic graph, paths and sources, "I don't know", review intervals, daily cap, 10-student threshold |
-| [tests/test_api.py](tests/test_api.py) | The frontend API on the full demo script; challenge solutions never reach the browser |
+| [tests/test_api.py](tests/test_api.py) | The frontend API on the full demo script; challenge solutions never reach the browser; the deck is served |
 
 **Current results** (`eval/results_offline.json`), on the **offline engine** and 8 hand-labelled explanations:
 
@@ -146,9 +146,16 @@ The 80% target is for the Claude judge: it has to be measured with `--mode live`
 ## Structure
 
 ```
-web/                  React frontend (src/pages: Dashboard, Loop · src/components: map, mascots)
+web/                  React frontend
+  src/pages/          Dashboard, Loop (the two screens, kept thin)
+  src/hooks/          useLoopSession: loads the session and runs each step against the API
+  src/components/     ConceptMap, mascots, toasts, dashboard/CourseCard
+    loop/             header + stepper, thread, messages, Teacher's correction, side panel
+    loop/composer/    the controls of each step (explain, questions, exam, correction, challenges)
+  src/styles/         base, dashboard and loop styles (component styles sit next to their component)
   dist/               ready-made build, served by python -m server
-server/               FastAPI API: sessions, JSON snapshots for the UI
+server/               FastAPI API: sessions, JSON snapshots for the UI; also serves presentation/
+presentation/         pitch deck: one file per slide, assets, and the script that splits an export
 teachback/            backend
   engine.py           orchestrator: loop steps, thresholds, states, hints, "explain it yourself", budget
   agents/             llm_backend.py (Claude) · offline_backend.py (rules) · same interface
@@ -163,14 +170,13 @@ eval/                 evaluation and example export
 tests/                pytest
 docs/                 documentation and deliverables (in Italian)
 static/               mockups and challenge images
-TeachBack.html        presentation slides
 ```
 
 ## Deliverables
 
 | Required by the challenge | Where |
 | --- | --- |
-| Presentation (mandatory) | [TeachBack.html](TeachBack.html), pitch text in [docs/pitch.md](docs/pitch.md) |
+| Presentation (mandatory) | [presentation/](presentation/) (one file per slide, with speaker notes), pitch text in [docs/pitch.md](docs/pitch.md) |
 | L1: problem, idea, scenario, user, metrics | [docs/LEVEL1.md](docs/LEVEL1.md) |
 | L2: README (setup, models, libraries, custom logic) | this file |
 | L2: working repository | `teachback/`, `server/`, `web/`, `tests/` |

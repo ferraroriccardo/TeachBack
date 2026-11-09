@@ -1,0 +1,14 @@
+/* Concept map (SVG). */
+.map-scroll { overflow-x: auto; }
+.map svg { min-width: 440px; width: 100%; height: auto; display: block; overflow: visible; }
+.node rect { stroke-width: 2; transition: fill .5s, stroke .5s; }
+.node { cursor: default; outline: none; }
+.node:focus-visible rect { stroke: var(--pen); stroke-width: 3; }
+.node.s-pronto rect { fill: var(--ok-soft); stroke: var(--ok); }
+.node.s-quasi rect { fill: var(--amber-soft); stroke: var(--amber); }
+.node.s-non_ancora rect { fill: var(--red-soft); stroke: var(--red); }
+.node.s-non_visto rect { fill: var(--surface); stroke: var(--idle); stroke-dasharray: 5 4; }
+.node-label { height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; font: 600 13px/1.12 var(--body); color: var(--ink); }
+.node.s-non_ancora rect { animation: pulse 1.6s ease-out 1; }
+@keyframes pulse { 0% { stroke-width: 8; } 100% { stroke-width: 2; } }
+.map-hint { margin-top: 8px; font-size: .85rem; color: var(--ink-3); min-height: 2.6em; }
