@@ -243,7 +243,11 @@ def demo():
     return {"explanation": DEMO_EXPLANATION, "fix": DEMO_FIX}
 
 
-# --- built frontend ------------------------------------------------------------------
+# --- presentation and built frontend ----------------------------------------------------
+
+PRESENTATION = Path(__file__).resolve().parent.parent / "presentation"
+if PRESENTATION.exists():
+    app.mount("/presentation", StaticFiles(directory=PRESENTATION, html=True), name="presentation")
 
 DIST = Path(__file__).resolve().parent.parent / "web" / "dist"
 if DIST.exists():

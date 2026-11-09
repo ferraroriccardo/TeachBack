@@ -72,3 +72,9 @@ def test_solutions_never_leave_the_server(client):
 def test_empty_explanation_is_rejected(client):
     sid = _start(client)["id"]
     assert client.post(f"/api/sessions/{sid}/explain", json={"text": "  "}).status_code == 400
+
+
+def test_presentation_is_served(client):
+    r = client.get("/presentation/")
+    assert r.status_code == 200 and "deck" in r.text
+    assert client.get("/presentation/slides/01-teachback.html").status_code == 200

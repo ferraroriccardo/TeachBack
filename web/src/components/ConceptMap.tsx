@@ -1,3 +1,4 @@
+import './ConceptMap.css'
 import { useState } from 'react'
 import type { GraphEdge, GraphNode, Status } from '../types'
 

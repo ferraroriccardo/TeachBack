@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import Brand, { ModePill } from '../components/Brand'
-import { STATUS_LABEL } from '../components/ConceptMap'
+import CourseCard from '../components/dashboard/CourseCard'
 import { Chick } from '../components/Mascots'
-import type { CourseCard, Status } from '../types'
 
 export default function Dashboard() {
   const [data, setData] = useState<Awaited<ReturnType<typeof api.courses>> | null>(null)
@@ -54,7 +53,7 @@ export default function Dashboard() {
           <h2 className="section-title">Your courses</h2>
           <div className="courses">
             {!data && !error && [0, 1, 2].map(i => <div key={i} className="course skeleton" />)}
-            {data?.courses.map(c => <Course key={c.id} c={c} onOpen={() => nav(`/course/${c.id}`)} />)}
+            {data?.courses.map(c => <CourseCard key={c.id} c={c} onOpen={() => nav(`/course/${c.id}`)} />)}
             {data && (
               <div className="course course-new">
                 <span className="plus" aria-hidden="true">+</span>
@@ -67,40 +66,5 @@ export default function Dashboard() {
         </section>
       </main>
     </div>
-  )
-}
-
-function Course({ c, onOpen }: { c: CourseCard; onOpen: () => void }) {
-  const [title, topic] = c.title.includes(' - ') ? c.title.split(' - ') : [c.title, c.subtitle]
-  const pct = c.concepts ? Math.round((c.ready / c.concepts) * 100) : 0
-  const started = c.statuses && Object.values(c.statuses).some(s => s !== 'non_visto')
-  const Tag = c.example ? 'div' : 'button'
-  return (
-    <Tag className={`course ${c.example ? 'is-example' : ''}`} {...(c.example ? { 'aria-disabled': true } : { onClick: onOpen })}>
-      <div className="course-top">
-        <span className={`badge ${c.official ? 'official' : 'community'}`}>{c.official ? 'Official' : 'Created by students'}</span>
-        {c.example && <span className="badge example">Example</span>}
-      </div>
-      <h3>{title}</h3>
-      <p className="course-topic">{topic}</p>
-      {c.statuses && c.names ? (
-        <ul className="concept-dots" aria-label="Concept status">
-          {Object.entries(c.statuses).map(([id, s]) => (
-            <li key={id} title={`${c.names![id]}: ${STATUS_LABEL[s as Status]}`}><span className={`dot s-${s}`} />{c.names![id]}</li>
-          ))}
-        </ul>
-      ) : (
-        <div className="concept-dots ghost" aria-hidden="true">
-          {Array.from({ length: c.concepts }, (_, i) => <span key={i} className={`dot ${i < c.ready ? 's-pronto' : 's-non_visto'}`} />)}
-        </div>
-      )}
-      <div className="course-foot">
-        <div className="progress" aria-label={`${c.ready} of ${c.concepts} concepts ready`}>
-          <div style={{ width: `${pct}%` }} />
-        </div>
-        <span className="count">{c.ready}/{c.concepts} ready</span>
-      </div>
-      {!c.example && <span className="cta">{started ? 'Continue explaining' : 'Start explaining'}</span>}
-    </Tag>
   )
 }
