@@ -20,7 +20,7 @@ Il grafo è al centro dell'esperienza dello studente: mostra cosa sa, cosa no e 
 | `hasStatus` | Student → Concept (pronto / quasi / non ancora) | Colore del nodo, ripasso, messaggio al docente |
 | `partOf` | Concept → Course | Libreria dei corsi |
 
-**Provenienza** di ogni fatto: `source` (slide), `extracted_by` (AI), `validated_by` (docente), `date`. Si trova in [data/courses/chimica-equilibrio/concepts.json](../data/courses/chimica-equilibrio/concepts.json) ed è citata nelle risposte dell'agente.
+**Provenienza** di ogni fatto: `source` (slide), `extracted_by` (AI), `validated_by` (docente), `date`. Si trova in [data/courses/chemistry-equilibrium/concepts.json](../data/courses/chemistry-equilibrium/concepts.json) ed è citata nelle risposte dell'agente.
 
 ## Il grafo della demo
 

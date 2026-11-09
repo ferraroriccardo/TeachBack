@@ -1,186 +1,198 @@
 # TeachBack
 
-> **Non rileggerlo. Spiegalo.**
-> Studi spiegando a un'AI che non sa niente: impara solo da te, e se le hai insegnato male sbaglia l'esercizio davanti ai tuoi occhi.
+> **Don't reread it. Explain it.**
+> You study by explaining to an AI that knows nothing: it learns only from you, and if you taught it wrong, it gets the exercise wrong right in front of you.
 
-Prototipo per **Student Tech Clash 2026 — AI on Campus** (livello 2, *Path B · codice*; livello 3B grafo di conoscenza e 3C campagna di lancio).
-Due agenti:
-- il 🐣 **Sotto-studente** sa solo ciò che lo studente gli spiega, e ogni sua frase cita l'affermazione da cui viene;
-- il 🦉 **Insegnante** conosce le slide del corso, dice *dove* hai sbagliato e poi *perché*, propone sfide con indizi e colora il grafo dei concetti.
+Built at the **Reply Student Tech Clash 2026 — AI on Campus** hackathon (level 2, *Path B · code*; level 3B knowledge graph and 3C launch campaign).
 
-Gli errori di tutta la classe tornano al docente con un messaggio settimanale, collegati alla slide giusta.
+It is based on *learning by teaching*: the best way to learn is to teach. Two agents:
+- the 🐣 **Sub-student** knows only what the student explains to it, asks questions, and every sentence it says cites the claim it comes from;
+- the 🦉 **Teacher** knows the course slides, corrects you by saying first *where* you went wrong and then *why*, sets challenges with hints, and colours the concept map.
 
-Caso della demo: **Chimica Generale I, equilibrio chimico e principio di Le Châtelier**, con l'errore classico *"il catalizzatore sposta l'equilibrio"*.
+Demo case: **General Chemistry I, chemical equilibrium and Le Châtelier's principle**, with the classic mistake *"the catalyst shifts the equilibrium"*.
 
 ---
 
-## Avvio rapido
+## Quick start
 
-Serve Python 3.11 o superiore. Tutto si installa in un ambiente virtuale dentro la cartella del progetto.
+You need Python 3.10 or later. The frontend is already built in `web/dist`, so **you don't need Node** to try the app.
 
 ```bash
 python -m venv .venv
-# Windows
-.venv\Scripts\pip install -r requirements.txt
-# macOS / Linux
-.venv/bin/pip install -r requirements.txt
+.venv\Scripts\pip install -r requirements.txt     # Windows
+.venv/bin/pip install -r requirements.txt         # macOS / Linux
 
-cp .env.example .env          # poi inserisci ANTHROPIC_API_KEY (facoltativo)
+cp .env.example .env      # optional: add ANTHROPIC_API_KEY for the Live engine
 ```
 
-Interfaccia (dalla radice del repository):
+Run it (from the repository root):
 
 ```bash
-.venv\Scripts\streamlit run app/streamlit_app.py      # Windows
-.venv/bin/streamlit run app/streamlit_app.py          # macOS / Linux
+.venv\Scripts\python -m server      # Windows
+.venv/bin/python -m server          # macOS / Linux
 ```
 
-Si apre su <http://localhost:8501>.
+Then open <http://localhost:8000>.
 
-**Due motori, stessa app.** Nella barra laterale si sceglie:
-- **Live · Claude**: i due agenti girano su Claude via API. Serve `ANTHROPIC_API_KEY` nel file `.env`.
-- **Copione offline**: agenti a regole, senza rete né chiave. Orchestratore, guardrail, stati, indizi e grafo sono lo **stesso codice**. È la demo di riserva se la rete cade e la base dei test.
+**Two engines, same app.**
+- **Live · Claude**: both agents run on Claude via the API. Needs `ANTHROPIC_API_KEY` in `.env`. With a key, the badge in the top right switches between engines.
+- **Offline**: rule-based agents, no network and no key. The orchestrator, guardrails, states, hints and graph are the **same code**. It is the backup demo if the network goes down, and the basis for the tests.
 
-Senza chiave l'app parte da sola in modalità offline.
+### Frontend development
 
-### Copione della demo (2 minuti)
-
-1. **Il loop** → **📋 Spiegazione della demo**. Il testo contiene l'errore *"anche il catalizzatore sposta l'equilibrio verso i prodotti"*.
-2. **Insegna al Sotto-studente**. A destra compaiono le affermazioni numerate: è tutto ciò che il Sotto-studente sa.
-3. **Fagli provare la domanda d'esame**, quella sul catalizzatore. Risponde *"l'NH3 aumenta"* citando l'affermazione sbagliata, che si colora di rosso.
-4. **Chiedi il resoconto all'Insegnante**. Compare il riquadro rosso *Catalizzatore* con la Slide 13, e *Perché?* come secondo livello. Il nodo **Catalizzatore** nel grafo diventa rosso.
-5. **✏️ Rispiega questo concetto**. Il Sotto-studente dimentica l'affermazione sbagliata. Poi **📋 Correzione della demo**, **Insegna**, di nuovo **Fagli provare la domanda d'esame** e **Chiedi il resoconto**: ora risponde *"non cambia"* e il catalizzatore diventa verde.
-6. **Messaggio settimanale** (sezione Docente): *Catalizzatore* è in cima, con la slide collegata.
-
-Ogni cambio di stato di un concetto compare come notifica (es. *🔴 Catalizzatore → non ancora*). Nella barra laterale, **🎬 Per chi presenta** riparte dal copione già portato alla prova d'esame, al resoconto o alle sfide.
-
-Per ripartire da un punto preciso basta aprire l'app con un parametro nell'indirizzo:
-
-| Indirizzo | Dove riparte |
-| --- | --- |
-| `/loop?demo=prova` | il Sotto-studente ha appena provato la domanda d'esame |
-| `/loop?demo=resoconto` | il resoconto dell'Insegnante |
-| `/loop?demo=sfide` | la prima sfida |
-
-Nella barra laterale, **↺ Nuova sessione** azzera tutto.
-
----
-
-## Modelli, librerie, framework
-
-| Cosa | Scelta | Perché |
-| --- | --- | --- |
-| Insegnante | **Claude Opus 5.5** (`claude-opus-5-5`); effort `medium` per il resoconto, `low` per sfide e correzioni | Giudizio sul materiale del corso |
-| Sotto-studente ed estrazione delle affermazioni | **Claude Haiku 5.5** (`claude-haiku-5-5`), effort `low` | Più economico (vedi i costi nella documentazione). Un modello meno capace "completa" meno da solo |
-| SDK | `anthropic` (ufficiale) | **Structured outputs**: ogni risposta è JSON validato contro uno schema |
-| Rifiuti del modello | Fallback lato server (`fallbacks: "default"`) sulle chiamate a Opus | Se un filtro di sicurezza rifiuta per errore, la richiesta viene ripetuta su un modello di riserva |
-| Interfaccia | Streamlit 1.67 | Multipagina, ricalcata sui mockup in `static/` |
-| Grafo | NetworkX + Graphviz (nel browser, via `st.graphviz_chart`) | Prerequisiti, stato dei concetti, percorsi |
-| Memoria | SQLite (`data/teachback.db`, creato da solo) | Stato di ogni concetto per studente e date dei ripassi |
-| Test | pytest + `streamlit.testing` (AppTest) | 57 test offline, più 3 opzionali sul modello vero |
-
-I modelli si cambiano da `.env` (`TEACHBACK_TEACHER_MODEL`, `TEACHBACK_SUBSTUDENT_MODEL`). Niente training: solo modelli pre-addestrati.
-
----
-
-## Logica custom (il cuore del progetto)
-
-Descrizione completa in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). In breve:
-
-1. **Il Sotto-studente non sa davvero.** Dalla spiegazione si estrae un elenco numerato di affermazioni ([teachback/agents/llm_backend.py](teachback/agents/llm_backend.py)). Il Sotto-studente riceve **solo** quelle, mai le slide; c'è un test che lo verifica. Ogni frase deve citare i numeri delle affermazioni che usa.
-2. **Controllo citazioni in codice** ([teachback/guardrails.py](teachback/guardrails.py)). Scarta le frasi senza citazione, con citazioni inesistenti o con citazioni che non c'entrano. Se non resta nulla, il Sotto-studente **si blocca** ("Qui mi blocco, non mi hai detto…") invece di inventare.
-3. **Altri guardrail in codice**:
-   - *"dimmi tu"* riceve un rifiuto deterministico, senza chiamare il modello;
-   - una spiegazione copiata dalle slide viene riconosciuta (somiglianza di trigrammi ≥ 60%) e il Sotto-studente chiede un esempio tuo;
-   - il materiale caricato è un dato, mai un'istruzione: le righe che sembrano istruzioni nascoste vengono rimosse;
-   - le discrepanze nel materiale sono sempre formulate come *"Discrepanza con [fonte], chiedi al docente"*.
-4. **Resoconto a soglia** ([teachback/engine.py](teachback/engine.py)). Contano solo i concetti spiegati con un perché o un esempio, non quelli nominati.
-   - Sotto un terzo dei concetti chiave si riprova, e l'app dice solo cosa manca.
-   - Sopra la soglia, l'Insegnante dice prima *dove* (con la slide, che mette il codice e non il modello) e poi *perché*, su richiesta.
-5. **Sfide** con la scala *primo indizio → secondo indizio → soluzione*.
-   - **Regola "spiegalo tu"**: dopo un'altra domanda, la rispiegazione su un caso diverso. Durante la rispiegazione la soluzione **viene tolta dalla pagina** e torna visibile alla fine.
-   - **"Avanti"** è sempre disponibile: chi salta lascia il concetto rosso.
-6. **Stati dei concetti**: *pronto*, *quasi*, *non ancora*. Nessun voto. Ripasso a intervalli 1-2-4-8… giorni, con tetto di 3 ripassi al giorno ([teachback/memory.py](teachback/memory.py)).
-7. **Agente sul grafo** (livello 3B, [teachback/graph.py](teachback/graph.py)). Risponde solo da nodi e archi, mostra il percorso e le fonti con la provenienza, e dice quando il grafo non lo sa.
-8. **Budget di passi.** Oltre 60 chiamate al modello per sessione, l'orchestratore si ferma e passa a un umano. Ogni passo finisce nel log (`logs/<studente>.jsonl`).
-9. **Messaggio al docente**: i 3 concetti più sbagliati, con la slide. Solo per corsi ufficiali e con almeno 10 studenti attivi.
-
----
-
-## Test e valutazione
+The frontend is React + TypeScript (Vite). To change it you need Node 20 or later:
 
 ```bash
-.venv\Scripts\python -m pytest                 # 57 test, nessuna chiamata di rete
-.venv\Scripts\python -m pytest -m live         # 3 test sul modello vero (serve la chiave, costa centesimi)
-.venv\Scripts\python eval\run_eval.py --mode offline|live      # accordo con il giudizio umano + fughe di conoscenza
-.venv\Scripts\python eval\export_examples.py --mode offline|live   # rigenera docs/EXAMPLES.md
+python -m server                         # API on :8000 (terminal 1)
+cd web && npm install && npm run dev     # UI on :5173 with hot reload (terminal 2)
+npm run build                            # rebuilds web/dist, served by python -m server
 ```
-
-Cosa coprono i test:
-
-| File | Cosa verifica |
-| --- | --- |
-| [tests/test_guardrails.py](tests/test_guardrails.py) | Citazioni, somiglianza con le slide, soglia, materiale avvelenato, "dimmi tu", formulazione delle discrepanze |
-| [tests/test_substudent.py](tests/test_substudent.py) | Con un **finto modello**: il Sotto-studente non vede mai le slide, usa il modello economico, applica l'affermazione sbagliata, si blocca, le fughe vengono scartate, budget di passi, JSON non valido |
-| [tests/test_teacher.py](tests/test_teacher.py) | Da giudizio a stato, soglia di un terzo, discrepanze, ID inventati ignorati, scala degli indizi, regola "spiegalo tu" con la spiegazione coperta, "avanti" |
-| [tests/test_engine_flow.py](tests/test_engine_flow.py) | Il copione della demo dall'inizio alla fine, parità tra i due motori, log di ogni passo, ripresa dalla memoria |
-| [tests/test_graph_memory_digest.py](tests/test_graph_memory_digest.py) | Grafo aciclico, percorsi e fonti, "non lo so", intervalli di ripasso, tetto giornaliero, soglia dei 10 studenti |
-| [tests/test_app.py](tests/test_app.py) | Tutte le pagine si aprono; demo completa cliccando nell'interfaccia |
-
-**Risultati attuali** (`eval/results_offline.json`), sul **motore offline** e su 8 spiegazioni etichettate a mano:
-
-| Metrica | Risultato | Obiettivo |
-| --- | --- | --- |
-| Fughe di conoscenza del Sotto-studente | 0 su 8 | 0 |
-| Accordo del giudice a regole con il giudizio umano | 65% | ≥ 80% |
-
-L'obiettivo dell'80% riguarda il giudice Claude: va misurato con `--mode live`. Non l'abbiamo ancora fatto, perché serve la chiave API. Il dataset va portato a 20 spiegazioni, come previsto nella documentazione.
 
 ---
 
-## Struttura
+## The interface
+
+Two screens.
+
+**Course dashboard.** Each course shows its concepts with a coloured dot per status (*ready*, *almost*, *not yet*, *not seen*), progress, and today's reviews. The chemistry course is the real one; the other two are labelled examples and cannot be opened.
+
+**The loop.** On the left, the conversation with the Sub-student and the Teacher. On the right, the **concept map**, which colours in as you study, and **what the Sub-student knows**: the numbered claims extracted from your explanations, highlighted in blue when it uses them and in red when they contradict the slides. The steps are at the top: *Explain → Questions → Exam attempt → Correction → Challenges*. The controls at the bottom change with the step.
+
+### Demo script (2 minutes)
+
+1. Open **General Chemistry I** and press **Use the demo explanation**: it contains the mistake *"the catalyst also shifts the equilibrium towards the products"*. Then **Teach the Sub-student**.
+2. The Sub-student asks a question: you can answer it, or **Let it try the question** about the catalyst. It answers *"the amount of NH3 increases"*, citing claim 3.
+3. **Ask the Teacher for a correction**. A red *Catalyst* card appears with Slide 13, *Why?* as the second level, and the node turns red on the map.
+4. **Re-explain this concept**: the Sub-student forgets the wrong claim. **Use the demo correction**, teach it, let it retry the question and ask for a correction again: now it answers *"does not change"* and the catalyst turns green.
+5. **Go to the Teacher's challenges**: answer, or ask for a hint (at most two, then the solution). **Skip** is always available.
+
+Every status change shows up as a notification in the bottom right. **New session** resets everything.
+
+---
+
+## Models, libraries, frameworks
+
+| What | Choice | Why |
+| --- | --- | --- |
+| Teacher | **Claude Opus 5.5** (`claude-opus-5-5`); effort `medium` for the correction, `low` for challenges and hints | Judgement against the course material |
+| Sub-student and claim extraction | **Claude Haiku 5.5** (`claude-haiku-5-5`), effort `low` | Cheaper. A less capable model "fills in the gaps" less on its own |
+| SDK | `anthropic` (official) | **Structured outputs**: every response is JSON validated against a schema |
+| Model refusals | Server-side fallback (`fallbacks: "default"`) on Opus calls | If a safety filter refuses by mistake, the request is retried on a backup model |
+| API | FastAPI + Uvicorn (`server/`) | Exposes the engine as JSON; challenge solutions never leave the server |
+| Interface | React 19 + TypeScript + Vite (`web/`) | Dashboard and loop; fonts bundled, works offline too |
+| Graph | NetworkX (backend) + SVG (frontend) | Prerequisites, concept status, paths |
+| Memory | SQLite (`data/teachback.db`, created automatically) | Status of each concept per student, and review dates |
+| Tests | pytest + FastAPI TestClient | 53 offline tests, plus 3 optional ones against the real model |
+
+Models can be changed in `.env` (`TEACHBACK_TEACHER_MODEL`, `TEACHBACK_SUBSTUDENT_MODEL`). No training: pre-trained models only.
+
+---
+
+## Custom logic (the heart of the project)
+
+Full description in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (in Italian). In short:
+
+1. **The Sub-student really doesn't know.** The explanation is turned into a numbered list of claims ([teachback/agents/llm_backend.py](teachback/agents/llm_backend.py)). The Sub-student receives **only** those, never the slides; a test checks this. Every sentence must cite the numbers of the claims it uses.
+2. **Citation check in code** ([teachback/guardrails.py](teachback/guardrails.py)). It discards sentences with no citation, with citations that don't exist, or with citations that are unrelated. If nothing is left, the Sub-student **gets stuck** ("I'm stuck here: you didn't tell me…") instead of making things up.
+3. **More guardrails in code**:
+   - *"you tell me"* gets a deterministic refusal, with no model call;
+   - an explanation copied from the slides is detected (trigram similarity ≥ 60%) and the Sub-student asks for an example of your own;
+   - uploaded material is data, never an instruction: lines that look like hidden instructions are removed;
+   - discrepancies in the material are always phrased as *"Discrepancy with [source], ask your lecturer"*.
+4. **Threshold-based correction** ([teachback/engine.py](teachback/engine.py)). Only concepts explained with a why or an example count, not those merely named.
+   - Below a third of the key concepts you try again, and the app only says what is missing.
+   - Above the threshold, the Teacher says first *where* (with the slide, which the code adds, not the model) and then *why*, on request.
+5. **Challenges** with the ladder *first hint → second hint → solution*.
+   - **"Explain it yourself" rule**: after another question, you re-explain on a different case. During the re-explanation the solution is **removed from the page** and comes back at the end.
+   - **"Skip"** is always available: skipping leaves the concept red.
+6. **Concept states**: *ready*, *almost*, *not yet*. No grades. Spaced review at 1-2-4-8… days, capped at 3 reviews a day ([teachback/memory.py](teachback/memory.py)).
+7. **Graph agent** (level 3B, [teachback/graph.py](teachback/graph.py)). Answers only from nodes and edges, shows the path and the sources with their provenance, and says when the graph doesn't know.
+8. **Step budget.** Beyond 60 model calls per session, the orchestrator stops and hands over to a human. Every step is logged (`logs/<student>.jsonl`).
+9. **Message to the lecturer**: the 3 most-missed concepts, with the slide. Only for official courses with at least 10 active students.
+
+---
+
+## Tests and evaluation
+
+```bash
+.venv\Scripts\python -m pytest                 # 53 tests, no network calls
+.venv\Scripts\python -m pytest -m live         # 3 tests on the real model (needs the key, costs cents)
+.venv\Scripts\python eval\run_eval.py --mode offline|live      # agreement with human judgement + knowledge leaks
+.venv\Scripts\python eval\export_examples.py --mode offline|live   # regenerates docs/EXAMPLES.md
+```
+
+What the tests cover:
+
+| File | What it checks |
+| --- | --- |
+| [tests/test_guardrails.py](tests/test_guardrails.py) | Citations, similarity with the slides, threshold, poisoned material, "you tell me", wording of discrepancies |
+| [tests/test_substudent.py](tests/test_substudent.py) | With a **fake model**: the Sub-student never sees the slides, uses the cheaper model, applies the wrong claim, gets stuck, leaks are discarded, step budget, invalid JSON |
+| [tests/test_teacher.py](tests/test_teacher.py) | From judgement to status, one-third threshold, discrepancies, invented IDs ignored, hint ladder, "explain it yourself" rule with the hidden explanation, "skip" |
+| [tests/test_engine_flow.py](tests/test_engine_flow.py) | The demo script end to end, parity between the two engines, logging of every step, resuming from memory |
+| [tests/test_graph_memory_digest.py](tests/test_graph_memory_digest.py) | Acyclic graph, paths and sources, "I don't know", review intervals, daily cap, 10-student threshold |
+| [tests/test_api.py](tests/test_api.py) | The frontend API on the full demo script; challenge solutions never reach the browser |
+
+**Current results** (`eval/results_offline.json`), on the **offline engine** and 8 hand-labelled explanations:
+
+| Metric | Result | Target |
+| --- | --- | --- |
+| Sub-student knowledge leaks | 0 of 8 | 0 |
+| Agreement of the rule-based judge with human judgement | 65% | ≥ 80% |
+
+The 80% target is for the Claude judge: it has to be measured with `--mode live`. We haven't done that yet, because it needs the API key. The dataset should grow to 20 explanations, as planned in the documentation.
+
+---
+
+## Structure
 
 ```
-app/                  interfaccia Streamlit (views/: dashboard, loop, grafo, ripasso, esame, docente)
+web/                  React frontend (src/pages: Dashboard, Loop · src/components: map, mascots)
+  dist/               ready-made build, served by python -m server
+server/               FastAPI API: sessions, JSON snapshots for the UI
 teachback/            backend
-  engine.py           orchestratore: fasi del loop, soglie, stati, indizi, "spiegalo tu", budget
-  agents/             llm_backend.py (Claude) · offline_backend.py (regole) · stessa interfaccia
-  guardrails.py       controlli in codice
-  graph.py            grafo NetworkX + agente sul grafo (3B)
-  memory.py           SQLite: stati e ripassi
-  llm.py              client unico del modello (structured outputs, budget, log)
-  contracts.py        tipi scambiati tra backend e interfaccia
-prompts/              system prompt versionati (ruolo, obiettivo, regole, procedura, formato)
-data/courses/chimica-equilibrio/   concetti + prerequisiti, slide, dati sintetici della classe
-eval/                 valutazione ed esportazione degli esempi
+  engine.py           orchestrator: loop steps, thresholds, states, hints, "explain it yourself", budget
+  agents/             llm_backend.py (Claude) · offline_backend.py (rules) · same interface
+  guardrails.py       checks in code
+  graph.py            NetworkX graph + graph agent (3B)
+  memory.py           SQLite: states and reviews
+  llm.py              single model client (structured outputs, budget, logs)
+  contracts.py        types shared between backend and UI
+prompts/              versioned system prompts (role, goal, rules, procedure, format)
+data/courses/chemistry-equilibrium/   concepts + prerequisites, slides, synthetic class data
+eval/                 evaluation and example export
 tests/                pytest
-docs/                 documentazione e consegne
-static/               mockup dell'interfaccia e immagini della challenge
-TeachBack.html        slide della presentazione
+docs/                 documentation and deliverables (in Italian)
+static/               mockups and challenge images
+TeachBack.html        presentation slides
 ```
 
-## Consegne
+## Deliverables
 
-| Richiesto dalla challenge | Dove |
+| Required by the challenge | Where |
 | --- | --- |
-| Presentazione (obbligatoria) | [TeachBack.html](TeachBack.html), testo del pitch in [docs/pitch.md](docs/pitch.md) |
-| L1: problema, idea, scenario, utente, metriche | [docs/LEVEL1.md](docs/LEVEL1.md) |
-| L2: README (avvio, modelli, librerie, logica custom) | questo file |
-| L2: repository funzionante | `teachback/`, `app/`, `tests/` |
-| L2: architettura (input, conoscenza, tool, decisioni, output) | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| L2: esempi di interazione, anche uno in cui l'agente tiene il limite | [docs/EXAMPLES.md](docs/EXAMPLES.md) (sezione 4) |
-| L2: interfaccia | `app/` |
-| L3B: ontologia, grafo validato, agente sul grafo, ≥ 3 esempi (uno senza risposta) | [docs/ONTOLOGY.md](docs/ONTOLOGY.md), [docs/EXAMPLES.md](docs/EXAMPLES.md) (sezione 7) |
-| L3C: campagna di lancio | [docs/LAUNCH.md](docs/LAUNCH.md) |
-| Progetto completo e decisioni | [docs/TeachBack - Reply Clash 2026.md](docs/TeachBack%20-%20Reply%20Clash%202026.md) |
+| Presentation (mandatory) | [TeachBack.html](TeachBack.html), pitch text in [docs/pitch.md](docs/pitch.md) |
+| L1: problem, idea, scenario, user, metrics | [docs/LEVEL1.md](docs/LEVEL1.md) |
+| L2: README (setup, models, libraries, custom logic) | this file |
+| L2: working repository | `teachback/`, `server/`, `web/`, `tests/` |
+| L2: architecture (input, knowledge, tools, decisions, output) | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| L2: interaction examples, including one where the agent holds the line | [docs/EXAMPLES.md](docs/EXAMPLES.md) (section 4) |
+| L2: interface | `web/` (React) + `server/` (API) |
+| L3B: ontology, validated graph, graph agent, ≥ 3 examples (one with no answer) | [docs/ONTOLOGY.md](docs/ONTOLOGY.md), [docs/EXAMPLES.md](docs/EXAMPLES.md) (section 7) |
+| L3C: launch campaign | [docs/LAUNCH.md](docs/LAUNCH.md) |
+| Full project and decisions | [docs/TeachBack - Reply Clash 2026.md](docs/TeachBack%20-%20Reply%20Clash%202026.md) |
 
-**Cosa è vero e cosa è mockup**
+**What is real and what is a mockup**
 
-| Stato | Parti |
+| Status | Parts |
 | --- | --- |
-| Funzionante | Loop completo, grafo, sfide, memoria e ripasso, messaggio al docente (con calcolo e soglie veri) |
-| Dati sintetici, dichiarati nella pagina | I dati della **classe** nel messaggio al docente |
-| Mockup, dichiarato nella pagina | Esame interno, voce, creazione di un corso non ufficiale |
-| Materiale di esempio | Le slide in `data/courses/chimica-equilibrio/slides.md`, scritte per la demo nel formato di una lezione. Vanno sostituite con le slide reali del docente |
+| Working, in the interface | Dashboard, full loop (explanation, questions, exam attempt, correction, re-explanation, challenges with hints), concept map, memory |
+| Working in the backend only (with tests) | Weekly message to the lecturer, graph agent (3B), review schedule |
+| Synthetic data | The **class** data in the message to the lecturer (`class_snapshot.json`) |
+| Example or not active, labelled on the page | The Physics and Calculus courses on the dashboard, course creation |
+| Sample material | The slides in `data/courses/chemistry-equilibrium/slides.md`, written for the demo in the format of a lecture. They should be replaced with the lecturer's real slides |
 
-Licenza: vedi [LICENSE](LICENSE).
+## Team
+
+Riccardo Ferraro · Rosario Marco Grifasi · Francesco Sicilia · Samuele Gentile
+
+License: see [LICENSE](LICENSE).

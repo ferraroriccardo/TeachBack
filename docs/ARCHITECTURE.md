@@ -3,10 +3,10 @@
 Segue l'architettura di riferimento della challenge (`static/structure.png`): interfaccia → orchestratore → LLM + system prompt → tool → memoria, con guardrail in codice e log di ogni passo.
 
 ```
- Streamlit (app/)  ──►  Engine (teachback/engine.py)  ──►  Backend agenti ──► Claude (llm.py)
-   chat, grafo,          macchina a stati del loop,          LLMBackend       Opus 5.5: Insegnante
-   resoconto,            guardrail, soglie, stati,           OfflineBackend   Haiku 5.5: Sotto-studente
-   docente, ripasso      indizi, "spiegalo tu", budget        (stessa interfaccia)
+ React (web/) ─► API (server/) ─► Engine (teachback/engine.py) ─► Backend agenti ─► Claude (llm.py)
+   dashboard,     FastAPI,         macchina a stati del loop,       LLMBackend      Opus 5.5: Insegnante
+   loop: chat,    sessioni,        guardrail, soglie, stati,        OfflineBackend  Haiku 5.5: Sotto-studente
+   mappa, memoria snapshot JSON    indizi, "spiegalo tu", budget     (stessa interfaccia)
         ▲                  │            │            │
         │                  ▼            ▼            ▼
         └──────────  guardrails.py   graph.py     memory.py (SQLite)   logger.py → logs/*.jsonl
@@ -15,7 +15,7 @@ Segue l'architettura di riferimento della challenge (`static/structure.png`): in
 
 | Blocco di riferimento | In TeachBack |
 | --- | --- |
-| User interface | `app/` (Streamlit, ricalcata sui mockup in `static/`) |
+| User interface | `web/` (React + Vite: dashboard dei corsi e pagina del loop) servita da `server/api.py` (FastAPI), che espone il motore come API JSON senza mai inviare al browser i dati in `Session.hidden` |
 | Agent orchestrator | `teachback/engine.py`: il loop *spiego → domande → prova → resoconto → sfide*, budget di 60 passi per sessione, poi passaggio a un umano |
 | LLM | `teachback/llm.py`: client unico, structured outputs (JSON con schema), fallback in caso di rifiuto |
 | System prompt (versionati in git) | `prompts/*.md`: ruolo, obiettivo, conoscenza, regole, procedura, formato |

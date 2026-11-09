@@ -7,7 +7,7 @@ Il prototipo è completo: vedi il [README](../README.md) per avvio, test e conse
 | Area | Proprietario | File |
 | --- | --- | --- |
 | **Backend e agenti** | P1 | `teachback/`, `prompts/`, `data/`, `eval/`, `tests/` tranne `test_app.py`, `docs/ARCHITECTURE.md`, `docs/ONTOLOGY.md`, `docs/EXAMPLES.md` (generato) |
-| **Interfaccia e presentazione** | P2 | `app/`, `.streamlit/`, `tests/test_app.py`, `TeachBack.html`, `static/`, `docs/LEVEL1.md`, `docs/pitch.md`, `docs/LAUNCH.md` |
+| **Interfaccia e presentazione** | P2 | `web/`, `server/`, `tests/test_api.py`, `TeachBack.html`, `static/`, `docs/LEVEL1.md`, `docs/pitch.md`, `docs/LAUNCH.md` |
 | **In comune** (si tocca solo dopo essersi parlati) | P1 + P2 | `teachback/contracts.py`, `requirements.txt`, `README.md` |
 
 **Il contratto** tra le due aree è fatto di due cose:

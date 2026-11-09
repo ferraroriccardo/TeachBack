@@ -1,0 +1,150 @@
+{
+  "id": "chemistry-equilibrium",
+  "title": "General Chemistry I - Chemical equilibrium",
+  "official": true,
+  "concepts": [
+    {
+      "id": "equilibrio_dinamico",
+      "name": "Dynamic equilibrium",
+      "prerequisites": [],
+      "slide_ref": "Slide 3 - Reversible reactions and dynamic equilibrium",
+      "aliases": [
+        "dynamic equilibrium",
+        "reversible reaction",
+        "reversible reactions"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 3",
+        "extracted_by": "AI (proposed)",
+        "validated_by": "lecturer",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        0,
+        1.5
+      ]
+    },
+    {
+      "id": "costante_equilibrio",
+      "name": "Equilibrium constant (Kc)",
+      "prerequisites": [
+        "equilibrio_dinamico"
+      ],
+      "slide_ref": "Slide 6 - Law of mass action and Kc",
+      "aliases": [
+        "equilibrium constant",
+        "kc",
+        "mass action"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 6",
+        "extracted_by": "AI (proposed)",
+        "validated_by": "lecturer",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        2.3,
+        2.7
+      ]
+    },
+    {
+      "id": "quoziente_reazione",
+      "name": "Reaction quotient (Q)",
+      "prerequisites": [
+        "costante_equilibrio"
+      ],
+      "slide_ref": "Slide 8 - Reaction quotient Q",
+      "aliases": [
+        "reaction quotient",
+        "quotient"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 8",
+        "extracted_by": "AI (proposed)",
+        "validated_by": "lecturer",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        4.6,
+        2.7
+      ]
+    },
+    {
+      "id": "le_chatelier",
+      "name": "Le Châtelier's principle",
+      "prerequisites": [
+        "quoziente_reazione"
+      ],
+      "slide_ref": "Slide 10 - Le Châtelier's principle",
+      "aliases": [
+        "le chatelier",
+        "le châtelier",
+        "lechatelier",
+        "chatelier",
+        "châtelier"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 10-11",
+        "extracted_by": "AI (proposed)",
+        "validated_by": "lecturer",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        4.6,
+        0.3
+      ]
+    },
+    {
+      "id": "effetto_temperatura",
+      "name": "Effect of temperature",
+      "prerequisites": [
+        "le_chatelier"
+      ],
+      "slide_ref": "Slide 12 - Temperature and the equilibrium constant",
+      "aliases": [
+        "temperature",
+        "exothermic",
+        "endothermic"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 12",
+        "extracted_by": "AI (proposed)",
+        "validated_by": "lecturer",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        6.9,
+        1.5
+      ]
+    },
+    {
+      "id": "catalizzatore",
+      "name": "Catalyst",
+      "prerequisites": [
+        "equilibrio_dinamico",
+        "le_chatelier"
+      ],
+      "slide_ref": "Slide 13 - Catalysts and equilibrium",
+      "aliases": [
+        "catalyst",
+        "catalysts",
+        "catalysis"
+      ],
+      "provenance": {
+        "source": "slides.md, Slide 13",
+        "extracted_by": "AI (proposed)",
+        "validated_by": "lecturer",
+        "date": "2026-11-07"
+      },
+      "layout": [
+        2.3,
+        0.3
+      ]
+    }
+  ],
+  "exam_questions": [
+    "I add a catalyst to the reaction N2 + 3H2 ⇌ 2NH3, already at equilibrium. What happens to the amount of NH3 at equilibrium? Why?",
+    "In the reaction N2 + 3H2 ⇌ 2NH3 at equilibrium I add more N2. Which way does the equilibrium shift, and why?",
+    "Why does compressing the vessel of the reaction N2 + 3H2 ⇌ 2NH3 shift the equilibrium towards NH3?"
+  ]
+}

@@ -21,7 +21,7 @@ from teachback.contracts import (
 
 STATUS_FROM_VERDICT = {"spiegato": "pronto", "nominato": "quasi", "errato": "non_ancora"}
 MIN_ACTIVE_STUDENTS = 10
-COVERED_TEXT = "🔒 Spiegazione coperta: ora tocca a te rispiegarla al Sotto-studente."
+COVERED_TEXT = "🔒 Explanation hidden: now it's your turn to re-explain it to the Sub-student."
 
 
 class Engine:
@@ -99,7 +99,7 @@ class Engine:
         kept, dropped = guardrails.validate_citations(_sentences(raw), s.claims)
         if not kept:  # nessuna domanda valida: domanda di riserva, sempre ancorata a un'affermazione
             c = s.claims[-1]
-            kept = [CitedSentence(f"Mi fai un esempio tuo su «{_short(c.text)}»?", [c.n])]
+            kept = [CitedSentence(f"Can you give me an example of your own about “{_short(c.text)}”?", [c.n])]
         text = " ".join(x.text for x in kept)
         return self._say(s, SubStudentReply("domanda", text, kept, len(dropped)), "ask", dropped)
 
@@ -111,16 +111,16 @@ class Engine:
         s.phase = "prova"
         s.chat.append(("esame", q))
         if not s.claims:
-            reply = SubStudentReply("blocco", "Qui mi blocco: non mi hai ancora insegnato niente!")
+            reply = SubStudentReply("blocco", "I'm stuck here: you haven't taught me anything yet!")
         else:
             raw = self.backend.try_exam(s.claims, q, s)
             kept, dropped = guardrails.validate_citations(_sentences(raw), s.claims, context=q)
             missing = (raw.get("missing") or "").strip().rstrip(".?")
             if raw.get("kind") == "blocco" or not kept:
-                tail = (f"non mi hai detto {missing}." if missing
-                        else "con quello che mi hai insegnato non arrivo a una risposta.")
+                tail = (f"you didn't tell me {missing}." if missing
+                        else "with what you taught me I can't reach an answer.")
                 partial = " ".join(f"{x.text} ({_cite(x)})" for x in kept)
-                reply = SubStudentReply("blocco", (partial + " " if partial else "") + "Qui mi blocco: " + tail,
+                reply = SubStudentReply("blocco", (partial + " " if partial else "") + "I'm stuck here: " + tail,
                                         kept, len(dropped))
             else:
                 reply = SubStudentReply("risposta", " ".join(f"{x.text} ({_cite(x)})" for x in kept),
@@ -159,12 +159,12 @@ class Engine:
             valid = {c.n for c in s.claims}
             for cid in wrong:
                 v = verdicts[cid]
-                feedback.append(Feedback(cid, v["where"] or "Qui qualcosa non torna con il materiale.",
+                feedback.append(Feedback(cid, v["where"] or "Something here does not match the course material.",
                                          course.concept(cid).slide_ref, v.get("why") or None,
                                          [n for n in v.get("evidence_claims", []) if n in valid]))
             for cid in named:
                 v = verdicts[cid]
-                feedback.append(Feedback(cid, v["where"] or f"Hai nominato {course.concept(cid).name} senza un perché o un esempio.",
+                feedback.append(Feedback(cid, v["where"] or f"You named {course.concept(cid).name} without a why or an example.",
                                          course.concept(cid).slide_ref, None,
                                          [n for n in v.get("evidence_claims", []) if n in valid]))
         discrepancies = [Discrepancy(d["source"], guardrails.discrepancy_note(d["source"], d["detail"]))
@@ -176,7 +176,7 @@ class Engine:
         s.phase = "resoconto"
         s.hidden["report"] = rep
         s.chat.append(("insegnante", rep.summary if not retry else
-                       "Riprova: mancano ancora " + ", ".join(course.concept(c).name for c in missing) + "."))
+                       "Try again: still missing " + ", ".join(course.concept(c).name for c in missing) + "."))
         logger.log(s, "teacher_report", explained=explained, named=named, wrong=wrong, retry=retry)
         return rep
 
@@ -193,8 +193,8 @@ class Engine:
         s.hidden["focus"] = concept_id
         s.phase = "spiego"
         name = course.concept(concept_id).name
-        s.chat.append(("insegnante", f"Rispiega «{name}» al Sotto-studente con parole tue"
-                                     + (f": ho tolto dalla sua memoria l'affermazione {', '.join(str(c.n) for c in removed)}."
+        s.chat.append(("insegnante", f"Re-explain “{name}” to the Sub-student in your own words"
+                                     + (f": I removed claim {', '.join(str(c.n) for c in removed)} from its memory."
                                         if removed else ".")))
         logger.log(s, "revise_concept", concept=concept_id, retracted=[c.n for c in removed])
         return removed
@@ -262,7 +262,7 @@ class Engine:
         ch["hints_used"] = used + 1
         if used < 2:
             level = "indizio_1" if used == 0 else "indizio_2"
-            return self._teacher(s, ChallengeStep(level, prefix + "Indizio: " + ch["hints"][used]))
+            return self._teacher(s, ChallengeStep(level, prefix + "Hint: " + ch["hints"][used]))
         self._close(s, ch, "non_ancora", "soluzione mostrata dopo due indizi")
         # Regola "spiegalo tu": più avanti, dopo un'altra domanda e su un caso diverso.
         s.hidden["retell"].append({"concept": concept.id, "after": s.hidden["challenges_done"] + 1})
@@ -317,10 +317,10 @@ class Engine:
                 if st == "non_ancora":
                     errors[cid] = errors.get(cid, 0) + 1
         if not course.official:
-            return WeeklyMessage(course_id, False, active, reason="Solo i corsi ufficiali inviano il messaggio al docente.")
+            return WeeklyMessage(course_id, False, active, reason="Only official courses send the message to the lecturer.")
         if active < MIN_ACTIVE_STUDENTS:
             return WeeklyMessage(course_id, False, active,
-                                 reason=f"Servono almeno {MIN_ACTIVE_STUDENTS} studenti attivi perché i dati restino anonimi.")
+                                 reason=f"At least {MIN_ACTIVE_STUDENTS} active students are needed to keep the data anonymous.")
         top = sorted(errors.items(), key=lambda kv: -kv[1])[:3]
         return WeeklyMessage(
             course_id, True, active,
@@ -362,7 +362,7 @@ def _sentences(raw: dict) -> list[CitedSentence]:
 
 
 def _cite(x: CitedSentence) -> str:
-    return ("aff. " if len(x.claim_ids) == 1 else "aff. ") + ", ".join(map(str, x.claim_ids))
+    return ("claim " if len(x.claim_ids) == 1 else "claims ") + ", ".join(map(str, x.claim_ids))
 
 
 def _short(text: str, words: int = 10) -> str:

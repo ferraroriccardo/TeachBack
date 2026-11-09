@@ -20,11 +20,7 @@ def offline_engine():
     return get_engine("offline")
 
 
-DEMO = ("Una reazione reversibile arriva all'equilibrio quando la reazione diretta e quella inversa vanno alla stessa "
-        "velocità: non si ferma, perché le due reazioni continuano, ma le concentrazioni restano costanti. "
-        "Il principio di Le Châtelier dice che se disturbo un equilibrio il sistema si sposta per contrastare il disturbo: "
-        "per esempio se aggiungo N2, l'equilibrio si sposta verso NH3 per consumare parte dell'N2 aggiunto. "
-        "Anche il catalizzatore sposta l'equilibrio verso i prodotti, per questo si usa per avere più ammoniaca.")
+from teachback.demo import DEMO_EXPLANATION as DEMO  # noqa: E402
 
 
 @pytest.fixture
@@ -46,7 +42,7 @@ class FakeLLM:
                           ("hint_1", "challenge"), ("correct", "grade")):
             if key in props:
                 return kind
-        raise AssertionError(f"schema sconosciuto: {props}")
+        raise AssertionError(f"unknown schema: {props}")
 
     def set(self, kind, *responses):
         self.responses[kind] = list(responses)
@@ -56,7 +52,7 @@ class FakeLLM:
         self.calls.append({"kind": kind, "model": model, "system": system, "user": user, "schema": schema})
         queue = self.responses.get(kind)
         if not queue:
-            raise AssertionError(f"nessuna risposta preparata per {kind}")
+            raise AssertionError(f"no prepared response for {kind}")
         data = queue.pop(0) if len(queue) > 1 else queue[0]
         return json.dumps(data), {"input_tokens": 10, "output_tokens": 10}
 

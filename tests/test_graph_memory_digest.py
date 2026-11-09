@@ -4,7 +4,7 @@ from datetime import date
 from teachback import graph, memory
 from teachback.course import load_course
 
-COURSE = load_course("chimica-equilibrio")
+COURSE = load_course("chemistry-equilibrium")
 
 
 # --- grafo -----------------------------------------------------------------------
@@ -19,29 +19,29 @@ def test_graph_is_a_dag_with_prerequisite_edges():
 def test_red_prerequisite_explains_why_a_concept_does_not_click():
     view = graph.view(COURSE, {"costante_equilibrio": "non_ancora", "le_chatelier": "quasi"})
     node = next(n for n in view.nodes if n.id == "le_chatelier")
-    assert "Costante di equilibrio" in node.reason
+    assert "Equilibrium constant" in node.reason
 
 
 def test_graph_agent_answers_with_path_and_sources():
     ans = graph.ask(COURSE, {"costante_equilibrio": "non_ancora", "catalizzatore": "non_ancora"},
-                    "Perché il catalizzatore non mi torna?")
+                    "Why don't I get the catalyst?")
     assert ans.found
-    assert any("—richiede→" in p for p in ans.path)
-    assert any("Slide 6" in s and "convalidato da docente" in s for s in ans.sources)
+    assert any("—requires→" in p for p in ans.path)
+    assert any("Slide 6" in s and "validated by lecturer" in s for s in ans.sources)
 
 
 def test_graph_agent_lists_prerequisites_in_order():
-    ans = graph.ask(COURSE, {}, "Cosa devo sapere prima di Le Châtelier?")
+    ans = graph.ask(COURSE, {}, "What do I need to know before Le Châtelier?")
     assert ans.found
-    order = [name for name in ("Equilibrio dinamico", "Costante di equilibrio", "Quoziente di reazione")]
+    order = [name for name in ("Dynamic equilibrium", "Equilibrium constant", "Reaction quotient")]
     positions = [ans.answer.index(n) for n in order]
     assert positions == sorted(positions)
 
 
 def test_graph_agent_says_when_it_does_not_know():
-    ans = graph.ask(COURSE, {}, "Chi ha scoperto il principio di Le Châtelier?")
-    assert not ans.found and "non contiene" in ans.answer
-    ans2 = graph.ask(COURSE, {}, "Come si calcola il pH di un tampone?")
+    ans = graph.ask(COURSE, {}, "Who discovered Le Châtelier's principle?")
+    assert not ans.found and "does not contain" in ans.answer
+    ans2 = graph.ask(COURSE, {}, "How do you calculate the pH of a buffer?")
     assert not ans2.found and ans2.path == []
 
 
@@ -74,9 +74,9 @@ def test_statuses_persist_and_reviews_respect_daily_cap(tmp_path):
 # --- messaggio al docente ---------------------------------------------------------------
 
 def test_weekly_message_top3_with_slides(offline_engine):
-    msg = offline_engine.weekly_message("chimica-equilibrio")
+    msg = offline_engine.weekly_message("chemistry-equilibrium")
     assert msg.available and len(msg.top_errors) == 3
-    assert msg.top_errors[0][0] == "Catalizzatore" and msg.top_errors[0][1].startswith("Slide 13")
+    assert msg.top_errors[0][0] == "Catalyst" and msg.top_errors[0][1].startswith("Slide 13")
     assert msg.synthetic
 
 
@@ -84,5 +84,5 @@ def test_weekly_message_hidden_below_ten_students(offline_engine, monkeypatch):
     from teachback import course
     monkeypatch.setattr(course, "load_class_snapshot",
                         lambda cid: {"active_students": 9, "errors": {"catalizzatore": 5}, "discrepancies": []})
-    msg = offline_engine.weekly_message("chimica-equilibrio")
+    msg = offline_engine.weekly_message("chemistry-equilibrium")
     assert not msg.available and msg.top_errors == [] and "10" in msg.reason

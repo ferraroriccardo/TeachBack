@@ -62,18 +62,18 @@ def _complete(model: str, system: str, user: str, schema: dict, effort: str, max
         else:
             resp = _get_client().messages.create(**kwargs)
     except anthropic.AuthenticationError as e:
-        raise LLMError("Chiave API non valida o mancante (ANTHROPIC_API_KEY).") from e
+        raise LLMError("Invalid or missing API key (ANTHROPIC_API_KEY).") from e
     except anthropic.RateLimitError as e:
-        raise LLMError("Limite di richieste raggiunto: riprova tra poco.") from e
+        raise LLMError("Rate limit reached: try again shortly.") from e
     except anthropic.APIStatusError as e:
-        raise LLMError(f"Errore del servizio ({e.status_code}).") from e
+        raise LLMError(f"Service error ({e.status_code}).") from e
     except anthropic.APIConnectionError as e:
-        raise LLMError("Rete non raggiungibile.") from e
+        raise LLMError("Network unreachable.") from e
 
     if resp.stop_reason == "refusal":
-        raise LLMError("Il modello ha rifiutato la richiesta.")
+        raise LLMError("The model refused the request.")
     if resp.stop_reason == "max_tokens":
-        raise LLMError("Risposta troncata (max_tokens).")
+        raise LLMError("Truncated response (max_tokens).")
     text = next((b.text for b in resp.content if b.type == "text"), "")
     usage = {"input_tokens": resp.usage.input_tokens, "output_tokens": resp.usage.output_tokens}
     return text, usage
@@ -88,8 +88,8 @@ def call_json(
         if session.llm_calls >= MAX_CALLS_PER_SESSION:
             logger.log(session, "budget_exceeded", calls=session.llm_calls)
             raise BudgetExceeded(
-                f"Raggiunto il limite di {MAX_CALLS_PER_SESSION} passi per sessione. "
-                "Segnala la domanda al docente o riprendi più tardi.")
+                f"Reached the limit of {MAX_CALLS_PER_SESSION} steps per session. "
+                "Flag the question to your lecturer or come back later.")
         session.llm_calls += 1
 
     model = TEACHER_MODEL if role == "teacher" else SUBSTUDENT_MODEL
@@ -100,6 +100,6 @@ def call_json(
         data = json.loads(text)
     except json.JSONDecodeError as e:
         logger.log(session, "llm_bad_json", model=model, step_name=step)
-        raise LLMError("Il modello ha restituito JSON non valido.") from e
+        raise LLMError("The model returned invalid JSON.") from e
     logger.log(session, "llm_call", call=step, model=model, latency_s=latency, **usage)
     return data

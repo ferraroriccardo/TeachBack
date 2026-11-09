@@ -1,4 +1,4 @@
-"""Contratto tra backend (teachback/) e interfaccia (app/).
+"""Contratto tra backend (teachback/) e interfaccia (server/ → web/).
 
 L'interfaccia importa SOLO da qui e dal motore restituito da `teachback.get_engine()`.
 Regola: si aggiungono campi con un default, non si rinomina e non si toglie nulla.
@@ -15,7 +15,7 @@ Phase = Literal["spiego", "domande", "prova", "resoconto", "sfide", "esame"]
 ReplyKind = Literal["domanda", "risposta", "blocco", "rifiuto"]
 
 STATUS_LABEL: dict[str, str] = {
-    "pronto": "pronto", "quasi": "quasi", "non_ancora": "non ancora", "non_visto": "non visto",
+    "pronto": "ready", "quasi": "almost", "non_ancora": "not yet", "non_visto": "not seen",
 }
 
 
@@ -152,8 +152,8 @@ class WeeklyMessage:
     discrepancies: list[Discrepancy] = field(default_factory=list)
     reason: str = ""
     synthetic: bool = False           # True se i dati della classe sono sintetici (demo)
-    disclaimer: str = ("Usano l'app soprattutto gli studenti più motivati: "
-                       "i dati non rappresentano tutta la classe.")
+    disclaimer: str = ("The app is used mostly by the most motivated students: "
+                       "the data does not represent the whole class.")
 
 
 @dataclass
@@ -166,7 +166,7 @@ class ReviewItem:
     action: Literal["sfida", "riapri_loop"] = "sfida"
 
 
-# --- Sessione (vive in st.session_state, cioè sul server) ---------------------------
+# --- Sessione (vive in memoria nel server API) ---------------------------
 
 @dataclass
 class Session:
